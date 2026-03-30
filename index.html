@@ -3,388 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DRE PostgreSQL Lab - Educational Platform</title>
+    <title>DRE PostgreSQL Lab - Welcome</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css" />
-    <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
-    <script src="https://unpkg.com/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8fafc;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --accent: #2563eb;
-            --border: #e2e8f0;
-            --term-bg: #000000;
-            --font-main: 'Inter', sans-serif;
-            --font-theory: 'Inter', sans-serif;
-        }
-
-        .theme-dracula {
-            --bg-primary: #282a36;
-            --bg-secondary: #1e1f29;
-            --text-primary: #f8f8f2;
-            --text-secondary: #6272a4;
-            --accent: #bd93f9;
-            --border: #44475a;
-            --term-bg: #1e1f29;
-        }
-
-        .theme-cyberpunk {
-            --bg-primary: #050505;
-            --bg-secondary: #0a0a0a;
-            --text-primary: #00ff41;
-            --text-secondary: #ff0055;
-            --accent: #00d4ff;
-            --border: #00ff41;
-            --term-bg: #000000;
-        }
-
-        .theme-academic {
-            --bg-primary: #fdfaf6;
-            --bg-secondary: #f4f1ea;
-            --text-primary: #2c2c2c;
-            --text-secondary: #5f5f5f;
-            --accent: #8b4513;
-            --border: #d7d3c8;
-            --term-bg: #1a1a1a;
-            --font-theory: 'Lora', serif;
-        }
-
-        .theme-contrast {
-            --bg-primary: #000000;
-            --bg-secondary: #000000;
-            --text-primary: #ffffff;
-            --text-secondary: #ffff00;
-            --accent: #ffff00;
-            --border: #ffffff;
-            --term-bg: #000000;
-        }
-
-        body { 
-            background-color: var(--bg-primary); 
-            color: var(--text-primary); 
-            font-family: var(--font-main);
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .theory-content { font-family: var(--font-theory); }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        
-        .border-custom { border-color: var(--border); }
-        .bg-custom-sec { background-color: var(--bg-secondary); }
-        .text-custom-sec { color: var(--text-secondary); }
-        .accent-color { color: var(--accent); }
-        .accent-bg { background-color: var(--accent); }
-
-        .xterm-viewport::-webkit-scrollbar { width: 8px; }
-        .xterm-viewport::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-        .prose h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent); }
-        .prose h2 { font-size: 1.2rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-        .prose p { margin-bottom: 1rem; line-height: 1.6; }
-        .prose code { background: var(--bg-secondary); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
-        .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade { animation: fadeIn 0.5s ease-out; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; }
+        .card { transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(59,130,246,0.2); }
     </style>
 </head>
-<body class="h-screen overflow-hidden">
-    <div id="root" class="h-full"></div>
+<body class="h-screen flex items-center justify-center">
+    <div class="text-center max-w-2xl px-4">
 
-    <script>
-        const { useState, useEffect, useRef, createContext, useContext } = React;
-        const html = htm.bind(React.createElement);
+        <!-- Logo -->
+        <div class="mb-8 inline-block p-5 rounded-2xl bg-blue-600 shadow-2xl shadow-blue-500/30">
+            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+            </svg>
+        </div>
 
-        const ThemeContext = createContext();
+        <h1 class="text-5xl font-bold mb-3 tracking-tight">DRE PostgreSQL Lab</h1>
+        <p class="text-slate-400 text-lg mb-10">
+            Добро пожаловать в симулятор инженера баз данных.<br>
+            Выберите раздел для начала работы.
+        </p>
 
-        const CURRICULUM = {
-            modules: [
-                {
-                    id: "intro",
-                    name: "PostgreSQL Intro",
-                    tasks: [
-                        {
-                            id: "arch",
-                            title: "Архитектура",
-                            theory: html`
-                                <div class="prose">
-                                    <h1>Клиент-серверная архитектура</h1>
-                                    <p>PostgreSQL работает по модели клиент-сервер. Процесс <code>postmaster</code> (или основной процесс <code>postgres</code>) слушает входящие соединения.</p>
-                                    <h2>Разделяемая память</h2>
-                                    <p>Сервер использует <code>Shared Buffers</code> для кэширования данных и <code>WAL Buffers</code> для журналов транзакций.</p>
-                                    <p><strong>Задание:</strong> Войдите в <code>psql</code> и узнайте версию сервера.</p>
-                                </div>
-                            `,
-                            check: (cmd, output) => cmd === "psql --version" || (cmd === "psql" && output.includes("PostgreSQL")),
-                            hint: "psql --version"
-                        },
-                        {
-                            id: "fs-linux",
-                            title: "Файловая структура",
-                            theory: html`
-                                <div class="prose">
-                                    <h1>Где лежат данные?</h1>
-                                    <p>В Linux стандартные пути:</p>
-                                    <ul>
-                                        <li><code>/var/lib/postgresql/data</code> — Сами данные (PGDATA).</li>
-                                        <li><code>/etc/postgresql/</code> — Конфигурационные файлы.</li>
-                                        <li><code>/var/log/postgresql/</code> — Логи.</li>
-                                    </ul>
-                                    <p><strong>Задание:</strong> Перейдите в директорию конфигов командой <code>cd /etc/postgresql</code>.</p>
-                                </div>
-                            `,
-                            check: (cmd, state) => state.cwd === "/etc/postgresql",
-                            hint: "cd /etc/postgresql"
-                        },
-                        {
-                            id: "config-sql",
-                            title: "SQL Исследование",
-                            theory: html`
-                                <div class="prose">
-                                    <h1>Поиск конфигов через SQL</h1>
-                                    <p>Иногда путь к конфигу неочевиден. Можно спросить саму базу:</p>
-                                    <code>SHOW config_file;</code>
-                                    <p>Или узнать путь к директории данных:</p>
-                                    <code>SELECT setting FROM pg_settings WHERE name = 'data_directory';</code>
-                                    <p><strong>Задание:</strong> Выполните запрос <code>SHOW config_file;</code> внутри psql (симуляция).</p>
-                                </div>
-                            `,
-                            check: (cmd) => cmd.toLowerCase().includes("show config_file"),
-                            hint: "SHOW config_file;"
-                        },
-                        {
-                            id: "logs-dre",
-                            title: "DRE: Логи",
-                            theory: html`
-                                <div class="prose">
-                                    <h1>Анализ сбоев</h1>
-                                    <p>Как DRE, вы должны уметь быстро находить причину отказа. Логи — ваш лучший друг.</p>
-                                    <p><strong>Задание:</strong> Найдите файл логов и проверьте последние записи через <code>tail</code>.</p>
-                                </div>
-                            `,
-                            check: (cmd) => cmd.startsWith("tail") && cmd.includes("postgresql.log"),
-                            hint: "tail /var/log/postgresql/postgresql.log"
-                        }
-                    ]
-                }
-            ]
-        };
-
-        const THEMES = [
-            { id: 'default', name: 'Classic Light', class: '' },
-            { id: 'dracula', name: 'Dracula', class: 'theme-dracula' },
-            { id: 'cyberpunk', name: 'Cyberpunk', class: 'theme-cyberpunk' },
-            { id: 'academic', name: 'Light Academic', class: 'theme-academic' },
-            { id: 'contrast', name: 'High Contrast', class: 'theme-contrast' }
-        ];
-
-        function Navbar({ activeModule, setActiveModule, currentTheme, setTheme }) {
-            return html`
-                <header class="h-14 border-b border-custom bg-custom-sec flex items-center justify-between px-6 z-10">
-                    <div class="flex items-center space-x-6">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 rounded accent-bg flex items-center justify-center font-bold text-white shadow-lg">P</div>
-                            <span class="font-bold tracking-tight text-sm uppercase">DRE Lab</span>
-                        </div>
-                        <nav class="flex space-x-4">
-                            <button class="text-xs font-semibold px-3 py-1 rounded ${activeModule === 'learning' ? 'accent-bg text-white' : 'text-custom-sec hover:bg-gray-200'}" onClick=${() => setActiveModule('learning')}>Обучение</button>
-                            <button class="text-xs font-semibold px-3 py-1 rounded ${activeModule === 'files' ? 'text-custom-sec' : 'text-custom-sec opacity-50 cursor-not-allowed'}" disabled>Справочник</button>
-                            <button class="text-xs font-semibold px-3 py-1 rounded ${activeModule === 'lab' ? 'text-custom-sec' : 'text-custom-sec opacity-50 cursor-not-allowed'}" disabled>Лабораторная</button>
-                        </nav>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <select 
-                            value=${currentTheme} 
-                            onChange=${(e) => setTheme(e.target.value)}
-                            class="bg-custom-sec border border-custom text-[10px] rounded px-2 py-1 outline-none"
-                        >
-                            ${THEMES.map(t => html`<option key=${t.id} value=${t.id}>${t.name}</option>`)}
-                        </select>
-                    </div>
-                </header>
-            `;
-        }
-
-        function Breadcrumbs({ module, task }) {
-            return html`
-                <div class="px-6 py-2 border-b border-custom bg-bg-primary text-[10px] flex items-center space-x-2 text-custom-sec uppercase tracking-widest">
-                    <span>Модули</span>
-                    <span>/</span>
-                    <span class="text-custom-sec">${module}</span>
-                    <span>/</span>
-                    <span class="accent-color font-bold">${task}</span>
+        <!-- Navigation Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="theory.html"
+               class="card p-6 bg-slate-800 rounded-2xl border border-slate-700 hover:border-blue-500 group block text-left">
+                <div class="w-10 h-10 rounded-lg bg-slate-700 group-hover:bg-blue-600 flex items-center justify-center mb-4 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
                 </div>
-            `;
-        }
+                <h3 class="text-lg font-semibold mb-1 group-hover:text-blue-400 transition-colors">Теория</h3>
+                <p class="text-sm text-slate-500">Техническое задание и контекст</p>
+            </a>
 
-        function App() {
-            const [activeModule, setActiveModule] = useState('learning');
-            const [currentTheme, setCurrentTheme] = useState('dracula');
-            const [taskIdx, setTaskIdx] = useState(0);
-            const [terminalState, setTerminalState] = useState({ cwd: '~', history: [] });
-            
-            const terminalRef = useRef(null);
-            const term = useRef(null);
-            const currentModule = CURRICULUM.modules[0];
-            const currentTask = currentModule.tasks[taskIdx];
-
-            const setTheme = (id) => {
-                const themeClass = THEMES.find(t => t.id === id).class;
-                document.body.className = `h-screen overflow-hidden ${themeClass}`;
-                setCurrentTheme(id);
-            };
-
-            useEffect(() => {
-                setTheme('dracula'); // Default on load
-            }, []);
-
-            const handleCommand = (input) => {
-                const cmd = input.trim();
-                let output = '';
-
-                if (cmd === 'ls') {
-                    if (terminalState.cwd === '/etc/postgresql') output = 'postgresql.conf  pg_hba.conf  pg_ident.conf';
-                    else if (terminalState.cwd === '/var/log/postgresql') output = 'postgresql.log';
-                    else output = 'projects/  docs/  data/';
-                } else if (cmd.startsWith('cd ')) {
-                    const newDir = cmd.split(' ')[1];
-                    setTerminalState(prev => ({ ...prev, cwd: newDir }));
-                } else if (cmd === 'psql --version') {
-                    output = 'psql (PostgreSQL) 15.3 (Ubuntu 15.3-1.pgdg22.04+1)';
-                } else if (cmd === 'psql') {
-                    output = 'psql (15.3)\nType "help" for help.\n\npostgres=# ';
-                } else if (cmd.toLowerCase().includes('show config_file')) {
-                    output = '               config_file\n-----------------------------------------\n /etc/postgresql/15/main/postgresql.conf\n(1 row)';
-                } else if (cmd.startsWith('tail')) {
-                    output = '[2024-03-30 21:00:01] LOG: database system is ready to accept connections\n[2024-03-30 21:05:12] ERROR: could not write to file "base/16384/16385": No space left on device';
-                } else {
-                    output = `bash: ${cmd}: command not found`;
-                }
-
-                if (output) term.current.writeln(output);
-                
-                // Check task completion
-                if (currentTask.check(cmd, { ...terminalState, output })) {
-                    // Visual feedback in terminal
-                    term.current.writeln('\r\n\x1b[1;32m[SUCCESS] Задание выполнено!\x1b[0m');
-                }
-            };
-
-            const checkStep = () => {
-                // Manual check button logic could go here, for now it just advances if logic matches
-                if (taskIdx < currentModule.tasks.length - 1) {
-                    setTaskIdx(prev => prev + 1);
-                }
-            };
-
-            useEffect(() => {
-                if (!term.current) {
-                    term.current = new Terminal({
-                        cursorBlink: true,
-                        fontSize: 14,
-                        fontFamily: 'JetBrains Mono',
-                        theme: { background: '#1e1f29', foreground: '#f8f8f2' }
-                    });
-                    const fit = new FitAddon.FitAddon();
-                    term.current.loadAddon(fit);
-                    term.current.open(terminalRef.current);
-                    fit.fit();
-
-                    term.current.writeln('\x1b[1;35mDRE PostgreSQL Lab - v2.0.0\x1b[0m');
-                    term.current.write(`\r\nuser@pgsql-lab:${terminalState.cwd}$ `);
-
-                    let input = '';
-                    term.current.onKey(({ key, domEvent }) => {
-                        if (domEvent.keyCode === 13) {
-                            term.current.write('\r\n');
-                            handleCommand(input);
-                            input = '';
-                            term.current.write(`user@pgsql-lab:${terminalState.cwd}$ `);
-                        } else if (domEvent.keyCode === 8) {
-                            if (input.length > 0) {
-                                input = input.slice(0, -1);
-                                term.current.write('\b \b');
-                            }
-                        } else if (key.charCodeAt(0) >= 32) {
-                            input += key;
-                            term.current.write(key);
-                        }
-                    });
-                } else {
-                    // Update theme if terminal supports it (simplified here)
-                    const colors = {
-                        dracula: { bg: '#1e1f29', fg: '#f8f8f2' },
-                        cyberpunk: { bg: '#000000', fg: '#00ff41' },
-                        default: { bg: '#000000', fg: '#ffffff' },
-                        academic: { bg: '#1a1a1a', fg: '#f4f1ea' },
-                        contrast: { bg: '#000000', fg: '#ffffff' }
-                    };
-                    term.current.options.theme = { background: colors[currentTheme].bg, foreground: colors[currentTheme].fg };
-                }
-            }, [currentTheme, taskIdx]);
-
-            return html`
-                <div class="flex flex-col h-screen">
-                    <${Navbar} 
-                        activeModule=${activeModule} 
-                        setActiveModule=${setActiveModule} 
-                        currentTheme=${currentTheme} 
-                        setTheme=${setTheme} 
-                    />
-                    <${Breadcrumbs} module=${currentModule.name} task=${currentTask.title} />
-
-                    <div class="flex-1 flex overflow-hidden">
-                        <!-- Left Panel: Knowledge Base -->
-                        <aside class="w-1/2 border-r border-custom flex flex-col bg-custom-sec overflow-y-auto p-8 animate-fade">
-                            <div class="max-w-prose mx-auto theory-content">
-                                ${currentTask.theory}
-                            </div>
-                        </aside>
-
-                        <!-- Right/Bottom Panel: Terminal -->
-                        <main class="flex-1 flex flex-col bg-black">
-                            <div class="flex-1 p-2 relative">
-                                <div ref=${terminalRef} class="h-full w-full"></div>
-                            </div>
-                        </main>
-                    </div>
-
-                    <!-- Bottom Navigator -->
-                    <footer class="h-16 border-t border-custom bg-custom-sec flex items-center justify-between px-8">
-                        <div class="flex space-x-2">
-                            <button 
-                                onClick=${() => setTaskIdx(prev => Math.max(0, prev - 1))}
-                                class="px-4 py-2 border border-custom rounded text-xs font-bold hover:bg-gray-100 disabled:opacity-30"
-                                disabled=${taskIdx === 0}
-                            > Назад </button>
-                            <button 
-                                onClick=${() => setTaskIdx(prev => Math.min(currentModule.tasks.length - 1, prev + 1))}
-                                class="px-4 py-2 border border-custom rounded text-xs font-bold hover:bg-gray-100 disabled:opacity-30"
-                                disabled=${taskIdx === currentModule.tasks.length - 1}
-                            > Далее </button>
-                        </div>
-                        
-                        <div class="flex items-center space-x-4">
-                            <p class="text-[10px] text-custom-sec font-mono uppercase tracking-widest">Прогресс: ${taskIdx + 1} / ${currentModule.tasks.length}</p>
-                            <button 
-                                onClick=${checkStep}
-                                class="px-8 py-2 accent-bg text-white rounded text-xs font-bold shadow-lg transform active:scale-95 transition-all"
-                            > Проверить </button>
-                        </div>
-                    </footer>
+            <a href="lab.html"
+               class="card p-6 bg-slate-800 rounded-2xl border border-slate-700 hover:border-blue-500 group block text-left">
+                <div class="w-10 h-10 rounded-lg bg-slate-700 group-hover:bg-blue-600 flex items-center justify-center mb-4 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
                 </div>
-            `;
-        }
+                <h3 class="text-lg font-semibold mb-1 group-hover:text-blue-400 transition-colors">Обучение</h3>
+                <p class="text-sm text-slate-500">Интерактивные практические задания</p>
+            </a>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(React.createElement(App));
-    </script>
+            <a href="sandbox.html"
+               class="card p-6 bg-slate-800 rounded-2xl border border-slate-700 hover:border-blue-500 group block text-left">
+                <div class="w-10 h-10 rounded-lg bg-slate-700 group-hover:bg-blue-600 flex items-center justify-center mb-4 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold mb-1 group-hover:text-blue-400 transition-colors">Песочница</h3>
+                <p class="text-sm text-slate-500">Свободный режим</p>
+            </a>
+        </div>
+
+        <p class="mt-10 text-xs text-slate-600 tracking-widest uppercase">DRE Lab · v2.0</p>
+    </div>
 </body>
 </html>

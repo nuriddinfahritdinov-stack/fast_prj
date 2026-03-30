@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRE PostgreSQL Lab - Обучение</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css"/>
+    <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://unpkg.com/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Curriculum + Themes data -->
+    <script src="data.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #ffffff; --bg-secondary: #f8fafc;
+            --text-primary: #1e293b; --text-secondary: #64748b;
+            --accent: #2563eb; --border: #e2e8f0;
+            --term-bg: #000; --font-main: 'Inter',sans-serif; --font-theory: 'Inter',sans-serif;
+        }
+        .theme-dracula   { --bg-primary:#282a36; --bg-secondary:#1e1f29; --text-primary:#f8f8f2; --text-secondary:#6272a4; --accent:#bd93f9; --border:#44475a; --term-bg:#1e1f29; }
+        .theme-cyberpunk { --bg-primary:#050505; --bg-secondary:#0a0a0a; --text-primary:#00ff41; --text-secondary:#ff0055; --accent:#00d4ff; --border:#00ff41; --term-bg:#000; }
+        .theme-academic  { --bg-primary:#fdfaf6; --bg-secondary:#f4f1ea; --text-primary:#2c2c2c; --text-secondary:#5f5f5f; --accent:#8b4513; --border:#d7d3c8; --term-bg:#1a1a1a; --font-theory:'Lora',serif; }
+        .theme-contrast  { --bg-primary:#000; --bg-secondary:#000; --text-primary:#fff; --text-secondary:#ff0; --accent:#ff0; --border:#fff; --term-bg:#000; }
+
+        body { background-color:var(--bg-primary); color:var(--text-primary); font-family:var(--font-main); transition:background-color .3s,color .3s; }
+        .theory-content { font-family:var(--font-theory); }
+        .mono { font-family:'JetBrains Mono',monospace; }
+        .border-custom   { border-color:var(--border); }
+        .bg-custom-sec   { background-color:var(--bg-secondary); }
+        .text-custom-sec { color:var(--text-secondary); }
+        .accent-color    { color:var(--accent); }
+        .accent-bg       { background-color:var(--accent); }
+
+        .xterm-viewport::-webkit-scrollbar { width:8px; }
+        .xterm-viewport::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+        /* Prose styles */
+        .prose h1  { font-size:1.35rem; font-weight:700; margin-bottom:.7rem; color:var(--accent); }
+        .prose h2  { font-size:1.05rem; font-weight:600; margin-top:1.2rem; margin-bottom:.4rem; border-bottom:1px solid var(--border); padding-bottom:.2rem; }
+        .prose p   { margin-bottom:.8rem; line-height:1.65; }
+        .prose code { background:var(--bg-secondary); padding:.15rem .4rem; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:.85em; }
+        .prose ul  { list-style-type:disc; padding-left:1.4rem; margin-bottom:.8rem; }
+        .prose ul li { margin-bottom:.25rem; }
+        .prose table { width:100%; border-collapse:collapse; margin-bottom:.8rem; font-size:.78rem; }
+        .prose table th { text-align:left; padding:.3rem .5rem; opacity:.55; border-bottom:1px solid var(--border); }
+        .prose table td { padding:.25rem .5rem; vertical-align:top; }
+        .prose table td .font-mono,
+        .prose table td:first-child { font-family:'JetBrains Mono',monospace; color:var(--accent); }
+
+        @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+        .animate-fade { animation:fadeIn .35s ease-out; }
+
+        /* Success badge flash */
+        @keyframes pop { 0%{transform:scale(.8);opacity:0} 60%{transform:scale(1.07)} 100%{transform:scale(1);opacity:1} }
+        .badge-pop { animation:pop .4s ease-out; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden">
+<div id="root" class="h-full"></div>
+
+<script>
+const { useState, useEffect, useRef, useCallback } = React;
+const html = htm.bind(React.createElement);
+
+// ── Simulated Filesystem ────────────────────────────────────────────────────
+const FS = {
+    '~':                       { type:'dir', children:['projects/','docs/','data/','postgresql.log.bak'] },
+    '/':                       { type:'dir', children:['etc/','var/','run/','home/','tmp/'] },
+    '/etc':                    { type:'dir', children:['postgresql/','hosts','passwd','apt/'] },
+    '/etc/postgresql':         { type:'dir', children:['15/'] },
+    '/etc/postgresql/15':      { type:'dir', children:['main/'] },
+    '/etc/postgresql/15/main': { type:'dir', children:['postgresql.conf','pg_hba.conf','pg_ident.conf'] },
+    '/var':                    { type:'dir', children:['lib/','log/','run/'] },
+    '/var/lib':                { type:'dir', children:['postgresql/'] },
+    '/var/lib/postgresql':     { type:'dir', children:['15/'] },
+    '/var/lib/postgresql/15':  { type:'dir', children:['main/'] },
+    '/var/log':                { type:'dir', children:['postgresql/','syslog','auth.log'] },
+    '/var/log/postgresql':     { type:'dir', children:['postgresql.log'] },
+    '/run/postgresql':         { type:'dir', children:['.s.PGSQL.5432','postgresql.pid'] },
+};
+
+function resolvePath(cwd, target) {
+    if (!target || target === '~') return '~';
+    if (target === '/') return '/';
+    if (target === '..') {
+        if (cwd === '~' || cwd === '/') return cwd;
+        const parts = cwd.split('/').filter(Boolean);
+        return parts.length === 1 ? '/' : '/' + parts.slice(0, -1).join('/');
+    }
+    if (target.startsWith('/')) return target.replace(/\/$/, '') || '/';
+    if (cwd === '~') return '~/' + target;
+    return (cwd + '/' + target).replace(/\/$/, '');
+}
+
+// ── Command Simulator ───────────────────────────────────────────────────────
+function simulate(rawCmd, cwd) {
+    const cmd   = rawCmd.trim();
+    const lower = cmd.toLowerCase();
+    const parts = cmd.split(/\s+/);
+    const base  = parts[0].toLowerCase();
+    let output  = '';
+    let newCwd  = null;
+
+    // ── clear ──────────────────────────────────────────────────────────────
+    if (base === 'clear') return { output: '__CLEAR__', newCwd: null };
+
+    // ── pwd ────────────────────────────────────────────────────────────────
+    if (base === 'pwd') { output = cwd === '~' ? '/home/user' : cwd; }
+
+    // ── cd ─────────────────────────────────────────────────────────────────
+    else if (base === 'cd') {
+        const target = parts[1] || '~';
+        const resolved = resolvePath(cwd, target);
+        // Alias /etc/postgresql to /etc/postgresql/15/main for convenience
+        if (FS[resolved] || FS[resolved + '/15/main']) {
+            newCwd = resolved;
+            output = '';
+        } else { output = `bash: cd: ${target}: No such file or directory`; }
+    }
+
+    // ── ls ─────────────────────────────────────────────────────────────────
+    else if (base === 'ls') {
+        // Extract path argument (skip flags)
+        const pathArg = parts.slice(1).find(p => !p.startsWith('-'));
+        const target  = pathArg ? resolvePath(cwd, pathArg) : cwd;
+        const entry   = FS[target] || FS[target + '/15/main'];
+        if (entry) {
+            const flags = parts.slice(1).filter(p => p.startsWith('-')).join('');
+            const items = entry.children || [];
+            if (flags.includes('l')) {
+                output = 'total ' + items.length * 4 + '\n';
+                output += items.map(i => `drwxr-xr-x 2 postgres postgres 4096 Mar 30 21:00 ${i}`).join('\n');
+            } else {
+                output = items.join('  ');
+            }
+        } else { output = `ls: cannot access '${pathArg || cwd}': No such file or directory`; }
+    }
+
+    // ── cat ────────────────────────────────────────────────────────────────
+    else if (base === 'cat') {
+        const f = parts[1] || '';
+        if (f.includes('postgresql.conf')) {
+            output = `# postgresql.conf — PostgreSQL configuration
+# Location: /etc/postgresql/15/main/postgresql.conf
+
+listen_addresses = 'localhost'
+port = 5432
+max_connections = 100
+shared_buffers = 128MB
+work_mem = 4MB
+wal_buffers = 16MB
+checkpoint_completion_target = 0.9
+log_directory = '/var/log/postgresql'
+log_filename = 'postgresql.log'
+log_line_prefix = '[%t] '
+log_min_messages = warning`;
+        } else if (f.includes('pg_hba.conf')) {
+            output = `# TYPE  DATABASE  USER  ADDRESS     METHOD
+local   all       all               peer
+host    all       all   127.0.0.1   md5
+host    all       all   ::1/128     md5`;
+        } else if (f.includes('postgresql.log')) {
+            output = simulateLog();
+        } else { output = `cat: ${f}: No such file or directory`; }
+    }
+
+    // ── psql ───────────────────────────────────────────────────────────────
+    else if (lower === 'psql --version' || lower === 'psql -v') {
+        output = 'psql (PostgreSQL) 15.3 (Ubuntu 15.3-1.pgdg22.04+1)';
+    } else if (lower === 'postgres --version' || lower === 'postgres -v') {
+        output = 'postgres (PostgreSQL) 15.3';
+    } else if (lower === 'pg_config --version') {
+        output = 'PostgreSQL 15.3';
+    } else if (lower === 'psql') {
+        output = 'psql (15.3)\nType "help" for help.\n\npostgres=# ';
+    }
+
+    // ── SQL inside psql simulation ─────────────────────────────────────────
+    else if (lower.includes('show config_file')) {
+        output = '               config_file\n───────────────────────────────────────────────\n /etc/postgresql/15/main/postgresql.conf\n(1 row)';
+    } else if (lower.includes('show data_directory')) {
+        output = '         data_directory\n───────────────────────────────────\n /var/lib/postgresql/15/main\n(1 row)';
+    } else if (lower.includes('pg_settings') && lower.includes('select')) {
+        output = `          name           |              setting
+─────────────────────────┼───────────────────────────────────────────
+ config_file             | /etc/postgresql/15/main/postgresql.conf
+ data_directory          | /var/lib/postgresql/15/main
+ hba_file                | /etc/postgresql/15/main/pg_hba.conf
+(3 rows)`;
+    }
+
+    // ── grep ───────────────────────────────────────────────────────────────
+    else if (base === 'grep') {
+        output = handleGrep(cmd, cwd);
+    }
+
+    // ── tail ───────────────────────────────────────────────────────────────
+    else if (base === 'tail') {
+        const hasLog = lower.includes('postgresql.log');
+        if (hasLog || cwd === '/var/log/postgresql') {
+            const lines = simulateLog().split('\n');
+            const nFlag = cmd.match(/-n\s*(\d+)/);
+            const count = nFlag ? parseInt(nFlag[1]) : 10;
+            const follow = lower.includes('-f');
+            output = lines.slice(-Math.min(count, lines.length)).join('\n');
+            if (follow) output += '\n\x1b[90m[следим за обновлениями... (симуляция)]\x1b[0m';
+        } else {
+            output = `tail: ${parts.find(p=>!p.startsWith('-') && p!=='tail') || ''}: No such file or directory`;
+        }
+    }
+
+    // ── sed ────────────────────────────────────────────────────────────────
+    else if (base === 'sed') {
+        const rangeMatch = cmd.match(/-n\s+'?(\d+),(\d+)p'?/);
+        const patMatch   = cmd.match(/-n\s+'?\/([^/]+)\/p'?/);
+        if (rangeMatch) {
+            const [,from,to] = rangeMatch.map(Number);
+            const conf = postgresConf().split('\n');
+            output = conf.slice(from-1, to).join('\n');
+        } else if (patMatch) {
+            const re = new RegExp(patMatch[1], 'i');
+            output = postgresConf().split('\n').filter(l => re.test(l)).join('\n') || '(нет совпадений)';
+        } else if (lower.includes('/^#/d')) {
+            output = postgresConf().split('\n').filter(l => !l.trim().startsWith('#')).join('\n');
+        } else {
+            output = '(sed: симуляция базовых операций. В реальной системе подействовало бы на настоящий файл.)';
+        }
+    }
+
+    // ── awk ────────────────────────────────────────────────────────────────
+    else if (base === 'awk') {
+        output = handleAwk(cmd);
+    }
+
+    // ── df ─────────────────────────────────────────────────────────────────
+    else if (base === 'df') {
+        const human = lower.includes('-h');
+        output = `Filesystem             Size  Used Avail Use% Mounted on\n` +
+                 `/dev/sda1              50G   47G  100M  98% /\n` +
+                 `tmpfs                 2.0G     0  2.0G   0% /dev/shm\n` +
+                 `/dev/sdb1             200G   30G  170G  15% /home\n` +
+                 `\x1b[1;31m⚠ /dev/sda1 почти заполнен (98%)!\x1b[0m`;
+        if (lower.includes('-i')) {
+            output = `Filesystem             Inodes  IUsed   IFree IUse% Mounted on\n` +
+                     `/dev/sda1             3276800 3100000  176800   95% /\n` +
+                     `\x1b[1;33mВнимание: inodes на / почти исчерпаны!\x1b[0m`;
+        }
+    }
+
+    // ── du ─────────────────────────────────────────────────────────────────
+    else if (base === 'du') {
+        output = `38G\t/var/lib/postgresql/15/main/base\n` +
+                 `512M\t/var/lib/postgresql/15/main/pg_wal\n` +
+                 `4.0K\t/var/lib/postgresql/15/main/global\n` +
+                 `38G\t/var/lib/postgresql`;
+    }
+
+    // ── find ───────────────────────────────────────────────────────────────
+    else if (base === 'find') {
+        if (lower.includes('postgresql.conf')) {
+            output = '/etc/postgresql/15/main/postgresql.conf';
+        } else if (lower.includes('postgresql') && lower.includes('/etc')) {
+            output = '/etc/postgresql\n/etc/postgresql/15\n/etc/postgresql/15/main\n/etc/postgresql/15/main/postgresql.conf\n/etc/postgresql/15/main/pg_hba.conf';
+        } else if (lower.includes('postgresql.log') || lower.includes('/var/log')) {
+            output = '/var/log/postgresql/postgresql.log';
+        } else {
+            output = `find: results depend on filesystem (simulation)`;
+        }
+    }
+
+    // ── locate ─────────────────────────────────────────────────────────────
+    else if (base === 'locate') {
+        if (lower.includes('postgresql.conf')) {
+            output = '/etc/postgresql/15/main/postgresql.conf';
+        } else if (lower.includes('postgresql')) {
+            output = '/etc/postgresql/15/main/postgresql.conf\n/etc/postgresql/15/main/pg_hba.conf\n/var/log/postgresql/postgresql.log';
+        }
+    }
+
+    // ── ps ─────────────────────────────────────────────────────────────────
+    else if (base === 'ps') {
+        output = `USER       PID %CPU %MEM    VSZ   RSS   STAT COMMAND
+postgres  1234  0.0  2.1 345678 43210  Ss   /usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main
+postgres  1235  0.0  0.5 345900  9800  Ss   postgres: checkpointer
+postgres  1236  0.0  0.5 345678  9600  Ss   postgres: background writer
+postgres  1237  0.0  0.5 345678  9500  Ss   postgres: walwriter
+postgres  1312  0.0  1.0 347000 21000  Ss   postgres: app_user appdb 127.0.0.1(52341) idle
+postgres  1315  0.1  1.2 348000 24000  Ss   postgres: app_user appdb 127.0.0.1(52345) SELECT`;
+    }
+
+    // ── pgrep ──────────────────────────────────────────────────────────────
+    else if (base === 'pgrep') {
+        if (lower.includes('postgres')) {
+            output = '1234\n1235\n1236\n1237\n1312\n1315';
+        }
+    }
+
+    // ── lsof ───────────────────────────────────────────────────────────────
+    else if (base === 'lsof') {
+        if (lower.includes('5432') || lower.includes('postgres')) {
+            output = `COMMAND   PID     USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+postgres 1234 postgres    6u  IPv4  23456      0t0  TCP localhost:5432 (LISTEN)
+postgres 1234 postgres    7u  IPv6  23457      0t0  TCP localhost:5432 (LISTEN)
+postgres 1234 postgres    8u  unix  23458      0t0  STREAM /run/postgresql/.s.PGSQL.5432`;
+        }
+    }
+
+    // ── systemctl ──────────────────────────────────────────────────────────
+    else if (base === 'systemctl') {
+        if (lower.includes('postgresql')) {
+            output = `● postgresql.service - PostgreSQL RDBMS
+     Loaded: loaded (/lib/systemd/system/postgresql.service; enabled)
+     Active: \x1b[1;32mactive (running)\x1b[0m since Mon 2024-03-30 21:00:01 +05; 1h 24min ago
+    Process: 1200 ExecStart=/usr/lib/postgresql/15/bin/pg_ctl start (code=exited)
+   Main PID: 1234 (postgres)
+      Tasks: 6 (limit: 4571)
+        CPU: 1.241s`;
+        }
+    }
+
+    // ── journalctl ─────────────────────────────────────────────────────────
+    else if (base === 'journalctl') {
+        output = `Mar 30 21:00:01 server postgresql[1234]: LOG:  database system is ready to accept connections
+Mar 30 21:05:12 server postgresql[1234]: ERROR: could not write to file "base/16384/16385": No space left on device
+Mar 30 21:05:13 server postgresql[1234]: HINT:  Check free disk space with df -h`;
+    }
+
+    // ── help ───────────────────────────────────────────────────────────────
+    else if (base === 'help') {
+        output = `\x1b[1;33mДоступные команды (симуляция):\x1b[0m
+  Navigation : cd, ls [-l -a -h -R], pwd, find, locate
+  File view  : cat, tail [-n N] [-f], head [-n N], less, more
+  Text tools : grep [-n -i -v -c -r -A -B -E], sed [-n 'Xp' | 's/a/b/g'], awk
+  PostgreSQL : psql, psql --version, pg_config --version
+  SQL (psql) : SHOW config_file; SHOW data_directory;
+               SELECT ... FROM pg_settings;
+  Disk       : df [-h -i], du [-sh] [-h --max-depth=N]
+  Process    : ps [aux | -ef], pgrep, lsof [-i :PORT | -u USER]
+  System     : systemctl [status|start|stop] postgresql
+               journalctl [-u postgresql] [--since ...]
+  Terminal   : clear (или Ctrl+L)`;
+    }
+
+    // ── pipe simulation ────────────────────────────────────────────────────
+    else if (cmd.includes('|')) {
+        output = handlePipe(cmd, cwd);
+    }
+
+    // ── unknown ────────────────────────────────────────────────────────────
+    else {
+        output = `bash: ${parts[0]}: command not found\n(Введите \x1b[33mhelp\x1b[0m для списка доступных команд)`;
+    }
+
+    return { output, newCwd };
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function postgresConf() {
+    return `# postgresql.conf
+# Line 1: listen_addresses = 'localhost'
+# Line 2: port = 5432
+max_connections = 100
+shared_buffers = 128MB
+work_mem = 4MB
+wal_buffers = 16MB
+effective_cache_size = 4GB
+checkpoint_completion_target = 0.9
+log_directory = '/var/log/postgresql'
+log_filename = 'postgresql.log'
+log_line_prefix = '[%t] '
+log_min_messages = warning
+log_min_error_statement = error`;
+}
+
+function simulateLog() {
+    return `[2024-03-30 20:55:01] LOG:   database system was shut down at 2024-03-30 20:55:00 +05
+[2024-03-30 20:55:02] LOG:   database system is ready to accept connections
+[2024-03-30 21:00:01] LOG:   checkpoint starting: time
+[2024-03-30 21:00:03] LOG:   checkpoint complete: wrote 142 buffers (0.9%)
+[2024-03-30 21:03:50] WARNING: out of shared memory
+[2024-03-30 21:04:00] LOG:   autovacuum: processing database "appdb"
+[2024-03-30 21:05:12] ERROR:  could not write to file "base/16384/16385": No space left on device
+[2024-03-30 21:05:13] HINT:   Check free disk space with df -h /var/lib/postgresql
+[2024-03-30 21:05:20] FATAL:  terminating connection due to administrator command
+[2024-03-30 21:05:21] LOG:   database system is shut down`;
+}
+
+function handleGrep(cmd, cwd) {
+    const parts = cmd.match(/grep\s+((?:-\w+\s+)*)'?([^']+)'?\s+(.*)/);
+    const flags  = cmd.match(/-[a-zA-Z]+/g) || [];
+    const flagStr = flags.join('');
+    const hasN    = flagStr.includes('n');
+    const hasI    = flagStr.includes('i');
+    const hasC    = flagStr.includes('c');
+    const hasV    = flagStr.includes('v');
+    const lc      = cmd.toLowerCase();
+
+    // Determine what file/content to search
+    let content = '';
+    if (lc.includes('postgresql.conf')) content = postgresConf();
+    else if (lc.includes('postgresql.log') || cwd === '/var/log/postgresql') content = simulateLog();
+    else content = postgresConf(); // default
+
+    // Extract pattern (rough heuristic)
+    const patMatch = cmd.match(/grep\s+(?:-[\w]+\s+)*'?([^'\s]+)'?\s+/);
+    const pattern = patMatch ? patMatch[1] : '';
+    if (!pattern) return '(grep: укажите паттерн и файл)';
+
+    let lines = content.split('\n');
+    const re = new RegExp(pattern, hasI ? 'i' : '');
+    let matched = lines.filter(l => hasV ? !re.test(l) : re.test(l));
+
+    if (hasC) return String(matched.length);
+    if (hasN) matched = matched.map((l,i) => `${lines.indexOf(l)+1}:${l}`);
+
+    return matched.join('\n') || '(нет совпадений)';
+}
+
+function handleAwk(cmd) {
+    const lc = cmd.toLowerCase();
+    const rangeMatch = cmd.match(/NR>=(\d+)\s*&&\s*NR<=(\d+)/);
+    if (rangeMatch) {
+        const [,from,to] = rangeMatch.map(Number);
+        return postgresConf().split('\n').slice(from-1, to).join('\n');
+    }
+    if (lc.includes('shared_buffers')) return 'shared_buffers = 128MB\n(значение: 128MB)';
+    if (lc.includes('nrp') || cmd.includes('{print NR, $0}')) {
+        return postgresConf().split('\n').map((l,i) => `${i+1} ${l}`).join('\n');
+    }
+    if (lc.includes('sum')) return '(awk: сумма полей — поддерживается в реальной системе)';
+    return postgresConf().split('\n').filter(l => l && !l.startsWith('#')).join('\n');
+}
+
+function handlePipe(cmd, cwd) {
+    // Very simplified pipe: run left side simulation, return note
+    const sides = cmd.split('|').map(s => s.trim());
+    const firstCmd = sides[0];
+    const firstResult = simulate(firstCmd, cwd);
+    const firstOut = firstResult.output || '';
+
+    const secondBase = sides[1].split(/\s+/)[0].toLowerCase();
+    if (secondBase === 'grep') {
+        const patMatch = sides[1].match(/grep\s+(?:-\w+\s+)*'?([^'\s]+)'?/);
+        const pattern  = patMatch ? patMatch[1] : '';
+        if (!pattern) return firstOut;
+        const re = new RegExp(pattern, 'i');
+        return firstOut.split('\n').filter(l => re.test(l)).join('\n') || '(нет совпадений)';
+    }
+    if (secondBase === 'tail') {
+        const nMatch = sides[1].match(/-n\s*(\d+)/);
+        const n = nMatch ? parseInt(nMatch[1]) : 10;
+        const lines = firstOut.split('\n');
+        return lines.slice(-n).join('\n');
+    }
+    if (secondBase === 'head') {
+        const nMatch = sides[1].match(/-n\s*(\d+)/);
+        const n = nMatch ? parseInt(nMatch[1]) : 10;
+        return firstOut.split('\n').slice(0, n).join('\n');
+    }
+    if (secondBase === 'wc') return String(firstOut.split('\n').length);
+    if (secondBase === 'sort') return firstOut.split('\n').sort().join('\n');
+
+    return firstOut + '\n\x1b[90m(вторая часть pipe выполнена)\x1b[0m';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  REACT COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function Navbar({ currentTheme, setTheme, moduleIdx, setModuleIdx }) {
+    return html`
+        <header class="h-14 border-b border-custom bg-custom-sec flex items-center justify-between px-6 z-10 shrink-0">
+            <div class="flex items-center space-x-6">
+                <a href="index.html" class="flex items-center space-x-2 group">
+                    <div class="w-8 h-8 rounded accent-bg flex items-center justify-center font-bold text-white shadow-lg text-sm">P</div>
+                    <span class="font-bold tracking-tight text-sm uppercase group-hover:opacity-75 transition-opacity">DRE Lab</span>
+                </a>
+                <nav class="flex space-x-1">
+                    <span class="text-xs font-semibold px-3 py-1 rounded accent-bg text-white">Обучение</span>
+                    <a href="theory.html" class="text-xs font-semibold px-3 py-1 rounded text-custom-sec hover:opacity-100 opacity-60 transition-opacity">Теория</a>
+                    <a href="sandbox.html" class="text-xs font-semibold px-3 py-1 rounded text-custom-sec hover:opacity-100 opacity-60 transition-opacity">Песочница</a>
+                </nav>
+            </div>
+            <div class="flex items-center space-x-3">
+                <!-- Module selector -->
+                <select
+                    value=${moduleIdx}
+                    onChange=${e => setModuleIdx(Number(e.target.value))}
+                    class="bg-custom-sec border border-custom text-[10px] rounded px-2 py-1 outline-none cursor-pointer"
+                >
+                    ${CURRICULUM.modules.map((m, i) => html`<option key=${m.id} value=${i}>${m.name}</option>`)}
+                </select>
+                <!-- Theme selector -->
+                <select
+                    value=${currentTheme}
+                    onChange=${e => setTheme(e.target.value)}
+                    class="bg-custom-sec border border-custom text-[10px] rounded px-2 py-1 outline-none cursor-pointer"
+                >
+                    ${THEMES.map(t => html`<option key=${t.id} value=${t.id}>${t.name}</option>`)}
+                </select>
+            </div>
+        </header>
+    `;
+}
+
+function StepPill({ idx, task, active, done, onClick }) {
+    const base = "w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all mb-1 flex items-center gap-2";
+    const cls  = active ? `${base} accent-bg text-white`
+               : done   ? `${base} opacity-55 text-custom-sec`
+               :           `${base} text-custom-sec hover:opacity-80 cursor-pointer`;
+    return html`
+        <button class=${cls} onClick=${!active ? onClick : undefined} disabled=${active}>
+            <span class="shrink-0 w-4 h-4 rounded-full border text-[9px] flex items-center justify-center
+                         ${done ? 'bg-green-500 border-green-500 text-white' : active ? 'border-white' : 'border-current opacity-40'}">
+                ${done ? '✓' : idx+1}
+            </span>
+            <span class=${done ? 'line-through' : ''}>${task.title}</span>
+        </button>
+    `;
+}
+
+function SuccessBanner({ task, onNext, isLast }) {
+    return html`
+        <div class="badge-pop mx-4 mb-3 p-3 rounded-xl border-2 border-green-500 bg-green-500/10 text-green-400 text-sm">
+            <p class="font-bold mb-1">✔ Задание выполнено!</p>
+            ${task.validPaths ? html`
+                <p class="text-[11px] opacity-75 mb-2">Допустимые способы решения:</p>
+                <ul class="text-[10px] opacity-70 list-disc pl-4 mb-2 font-mono space-y-0.5">
+                    ${task.validPaths.map((p,i) => html`<li key=${i}>${p}</li>`)}
+                </ul>
+            ` : null}
+            ${!isLast ? html`
+                <button onClick=${onNext}
+                    class="mt-1 px-4 py-1.5 bg-green-500 text-black rounded-lg text-xs font-bold hover:bg-green-400 transition-colors">
+                    Следующее задание →
+                </button>
+            ` : html`
+                <p class="font-semibold text-green-300">🎉 Модуль завершён!</p>
+            `}
+        </div>
+    `;
+}
+
+// ── Main App ────────────────────────────────────────────────────────────────
+function App() {
+    const [currentTheme, setCurrentTheme] = useState('dracula');
+    const [moduleIdx,    setModuleIdx]    = useState(0);
+    const [taskIdx,      setTaskIdx]      = useState(0);
+    const [cwd,          setCwd]          = useState('~');
+    const [hint,         setHint]         = useState(false);
+    const [taskDone,     setTaskDone]     = useState(false);
+
+    const termRef  = useRef(null);
+    const term     = useRef(null);
+    const fitAddon = useRef(null);
+    const cwdRef   = useRef(cwd);
+    cwdRef.current = cwd;
+
+    const taskIdxRef = useRef(taskIdx);
+    taskIdxRef.current = taskIdx;
+
+    const moduleIdxRef = useRef(moduleIdx);
+    moduleIdxRef.current = moduleIdx;
+
+    const module      = CURRICULUM.modules[moduleIdx];
+    const currentTask = module.tasks[taskIdx];
+
+    // ── Apply theme ──────────────────────────────────────────────────────
+    const applyTheme = (id) => {
+        const found = THEMES.find(t => t.id === id);
+        document.body.className = `h-screen overflow-hidden${found.cls ? ' ' + found.cls : ''}`;
+        setCurrentTheme(id);
+        if (term.current) {
+            const colors = {
+                dracula:   { bg:'#1e1f29', fg:'#f8f8f2' },
+                cyberpunk: { bg:'#000', fg:'#00ff41' },
+                default:   { bg:'#000', fg:'#fff' },
+                academic:  { bg:'#1a1a1a', fg:'#f4f1ea' },
+                contrast:  { bg:'#000', fg:'#fff' },
+            };
+            const c = colors[id] || colors.default;
+            term.current.options.theme = { background: c.bg, foreground: c.fg };
+        }
+    };
+
+    useEffect(() => { applyTheme('dracula'); }, []);
+
+    // Reset task state when switching module or task
+    useEffect(() => {
+        setTaskDone(false);
+        setHint(false);
+    }, [moduleIdx, taskIdx]);
+
+    // ── Command handler (used inside xterm onKey) ─────────────────────────
+    const handleCommandRef = useRef(null);
+    handleCommandRef.current = (rawInput) => {
+        const result = simulate(rawInput, cwdRef.current);
+
+        if (result.output === '__CLEAR__') {
+            term.current.clear();
+            term.current.write(`user@pgsql-lab:${cwdRef.current}$ `);
+            return;
+        }
+
+        if (result.newCwd !== null) {
+            cwdRef.current = result.newCwd;
+            setCwd(result.newCwd);
+        }
+
+        if (result.output) {
+            result.output.split('\n').forEach(line => term.current.writeln(line));
+        }
+
+        // Task check
+        const mod  = CURRICULUM.modules[moduleIdxRef.current];
+        const task = mod.tasks[taskIdxRef.current];
+        const check = task.check(rawInput.trim(), {
+            cwd:    result.newCwd !== null ? result.newCwd : cwdRef.current,
+            output: result.output || '',
+        });
+
+        if (check && !taskIdxRef.current._done) {
+            term.current.writeln('\r\n\x1b[1;32m[✔] Задание выполнено! Смотрите панель слева.\x1b[0m');
+            setTaskDone(true);
+        }
+    };
+
+    // ── xterm init ───────────────────────────────────────────────────────
+    useEffect(() => {
+        if (term.current) return;
+
+        term.current = new Terminal({
+            cursorBlink: true,
+            fontSize: 13,
+            fontFamily: "'JetBrains Mono', monospace",
+            theme: { background:'#1e1f29', foreground:'#f8f8f2' },
+            scrollback: 1000,
+        });
+
+        fitAddon.current = new FitAddon.FitAddon();
+        term.current.loadAddon(fitAddon.current);
+        term.current.open(termRef.current);
+        fitAddon.current.fit();
+
+        term.current.writeln('\x1b[1;35mDRE PostgreSQL Lab — v2.1.0\x1b[0m');
+        term.current.writeln('\x1b[90mТип "help" для списка команд. Ctrl+L — очистить.\x1b[0m');
+        term.current.write('\r\nuser@pgsql-lab:~$ ');
+
+        let inputBuf = '';
+
+        term.current.onKey(({ key, domEvent }) => {
+            const code = domEvent.keyCode;
+
+            if (domEvent.ctrlKey && (code === 76 || key === '\f')) {
+                term.current.clear();
+                term.current.write(`user@pgsql-lab:${cwdRef.current}$ `);
+                inputBuf = '';
+                return;
+            }
+            if (code === 13) {
+                term.current.write('\r\n');
+                handleCommandRef.current(inputBuf);
+                inputBuf = '';
+                term.current.write(`user@pgsql-lab:${cwdRef.current}$ `);
+            } else if (code === 8) {
+                if (inputBuf.length > 0) { inputBuf = inputBuf.slice(0,-1); term.current.write('\b \b'); }
+            } else if (key.charCodeAt(0) >= 32) {
+                inputBuf += key; term.current.write(key);
+            }
+        });
+
+        const ro = new ResizeObserver(() => fitAddon.current && fitAddon.current.fit());
+        ro.observe(termRef.current);
+        return () => ro.disconnect();
+    }, []);
+
+    // ── Global task counters ─────────────────────────────────────────────
+    const totalTasks   = CURRICULUM.modules.reduce((s, m) => s + m.tasks.length, 0);
+    const passedModules = CURRICULUM.modules.slice(0, moduleIdx);
+    const globalIdx    = passedModules.reduce((s, m) => s + m.tasks.length, 0) + taskIdx + 1;
+
+    // ── Render ───────────────────────────────────────────────────────────
+    return html`
+        <div class="flex flex-col h-screen">
+
+            <${Navbar}
+                currentTheme=${currentTheme} setTheme=${applyTheme}
+                moduleIdx=${moduleIdx} setModuleIdx=${(i) => { setModuleIdx(i); setTaskIdx(0); }}
+            />
+
+            <!-- Breadcrumbs -->
+            <div class="px-6 py-2 border-b border-custom bg-custom-sec text-[10px] flex items-center space-x-2 text-custom-sec uppercase tracking-widest shrink-0">
+                <span>Модули</span><span>/</span>
+                <span>${module.name}</span><span>/</span>
+                <span class="accent-color font-bold">${currentTask.title}</span>
+                <span class="ml-auto font-mono">${globalIdx}/${totalTasks}</span>
+            </div>
+
+            <div class="flex-1 flex overflow-hidden">
+
+                <!-- ── Left panel ───────────────── -->
+                <aside class="w-[45%] border-r border-custom flex flex-col bg-custom-sec min-w-0">
+
+                    <!-- Step pills -->
+                    <div class="border-b border-custom px-3 py-3 shrink-0">
+                        ${module.tasks.map((t, i) => html`
+                            <${StepPill} key=${t.id} idx=${i} task=${t}
+                                active=${i === taskIdx}
+                                done=${i < taskIdx}
+                                onClick=${() => setTaskIdx(i)} />
+                        `)}
+                    </div>
+
+                    <!-- Theory -->
+                    <div class="flex-1 overflow-y-auto p-6 animate-fade">
+                        <div class="max-w-prose mx-auto theory-content">
+                            <div dangerouslySetInnerHTML=${{ __html: currentTask.theoryHTML }}
+                                 class="prose" />
+                        </div>
+                    </div>
+
+                    <!-- Success banner -->
+                    ${taskDone ? html`
+                        <${SuccessBanner}
+                            task=${currentTask}
+                            isLast=${taskIdx === module.tasks.length - 1}
+                            onNext=${() => setTaskIdx(p => p + 1)}
+                        />
+                    ` : null}
+
+                    <!-- Hint -->
+                    <div class="border-t border-custom px-5 py-3 shrink-0 flex items-center justify-between">
+                        <button onClick=${() => setHint(h => !h)}
+                            class="text-xs text-custom-sec hover:opacity-80 transition-opacity underline">
+                            ${hint ? 'Скрыть подсказку' : '💡 Показать подсказку'}
+                        </button>
+                        ${hint ? html`<code class="text-xs accent-color ml-3 font-mono">${currentTask.hint}</code>` : null}
+                    </div>
+                </aside>
+
+                <!-- ── Terminal ──────────────────── -->
+                <main class="flex-1 flex flex-col bg-black min-w-0">
+                    <div class="flex-1 p-2 overflow-hidden">
+                        <div ref=${termRef} class="h-full w-full" />
+                    </div>
+                </main>
+            </div>
+
+            <!-- ── Footer navigator ───────────────── -->
+            <footer class="h-14 border-t border-custom bg-custom-sec flex items-center justify-between px-6 shrink-0">
+                <div class="flex space-x-2">
+                    <button
+                        onClick=${() => { setTaskIdx(p => Math.max(0, p-1)); }}
+                        class="px-4 py-1.5 border border-custom rounded text-xs font-bold hover:opacity-80 disabled:opacity-30 transition-opacity"
+                        disabled=${taskIdx === 0}
+                    >← Назад</button>
+                    <button
+                        onClick=${() => { setTaskIdx(p => Math.min(module.tasks.length-1, p+1)); }}
+                        class="px-4 py-1.5 border border-custom rounded text-xs font-bold hover:opacity-80 disabled:opacity-30 transition-opacity"
+                        disabled=${taskIdx === module.tasks.length - 1}
+                    >Далее →</button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-[10px] text-custom-sec mono uppercase tracking-widest">
+                        ${taskIdx+1} / ${module.tasks.length}
+                    </span>
+                    <div class="w-36 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                        <div class="h-full accent-bg rounded-full transition-all"
+                             style=${{ width: `${((taskIdx+1)/module.tasks.length)*100}%` }} />
+                    </div>
+                </div>
+            </footer>
+
+        </div>
+    `;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
