@@ -3,359 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DRE Education Platform - Prototype</title>
-    <!-- Tailwind CSS -->
+    <title>DRE Labs - PostgreSQL Recovery</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React & Babel for JSX -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide-react@0.344.0/dist/umd/lucide-react.min.js"></script>
-    <!-- Xterm.js -->
+    <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css" />
     <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://unpkg.com/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0d1117; color: #c9d1d9; }
+        :root { --bg-dark: #0d1117; --bg-glass: rgba(22, 27, 34, 0.8); --border-color: #30363d; --accent: #58a6ff; }
+        body { background-color: var(--bg-dark); color: #c9d1d9; font-family: 'Inter', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-card { background: var(--bg-glass); backdrop-filter: blur(8px); border: 1px solid var(--border-color); border-radius: 12px; }
+        .gradient-text { 
+            background: linear-gradient(135deg, #58a6ff 0%, #bc8cff 100%); 
+            -webkit-background-clip: text; 
+            background-clip: text;
+            -webkit-text-fill-color: transparent; 
+        }
         .xterm-viewport::-webkit-scrollbar { width: 8px; }
         .xterm-viewport::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
-        .xterm-container { background: #000; border-radius: 0 0 8px 8px; }
-        .glass { background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(10px); border: 1px solid #30363d; }
-        .active-tab { border-bottom: 2px solid #58a6ff; color: #f0f6fc; }
-        
-        /* IDE Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .animate-slide { animation: slideIn 0.4s ease-out forwards; }
     </style>
 </head>
 <body class="h-screen overflow-hidden">
     <div id="root" class="h-full"></div>
 
-    <script type="text/babel">
+    <script>
         const { useState, useEffect, useRef } = React;
-        const { 
-            Terminal: TerminalIcon, 
-            BookOpen, 
-            CheckCircle2, 
-            ChevronRight, 
-            Database, 
-            RotateCcw, 
-            Play,
-            Settings,
-            FileText,
-            AlertCircle,
-            Activity
-        } = lucideReact;
+        const html = htm.bind(React.createElement);
 
         const SCENARIO = {
             title: "Восстановление после сбоя",
-            description: "База данных PostgreSQL внезапно перестала отвечать. Ваша задача — провести диагностику и восстановить работу сервиса.",
+            description: "База данных PostgreSQL внезапно перестала отвечать. Проведите DRE-диагностику и восстановите работоспособность.",
             steps: [
-                {
-                    id: 1,
-                    title: "Диагностика сервиса",
+                { 
+                    id: 1, 
+                    title: "Статус сервиса", 
                     task: "Проверьте статус службы postgresql через systemctl.",
-                    theory: "В Linux системные службы управляются через systemd. Команда systemctl status позволяет узнать текущее состояние юнита.",
-                    hint: "Используйте: systemctl status postgresql",
-                    command: "systemctl status postgresql",
-                    nextState: { pgStatus: 'inactive' }
+                    theory: "Первым делом DRE обязан проверить 'Health' сервиса на уровне ОС.",
+                    cmd: "systemctl status postgresql",
+                    hint: "systemctl status postgresql"
                 },
-                {
-                    id: 2,
-                    title: "Проверка связности DB",
-                    task: "Попробуйте выполнить тестовый SQL-запрос для проверки доступности.",
-                    theory: "Утилита psql — это терминальный клиент для PostgreSQL. Флаг -c позволяет выполнить запрос без входа в интерактивный режим.",
-                    hint: "Попробуйте: psql -c \"SELECT 1;\"",
-                    command: "psql -c \"SELECT 1;\"",
-                    expectFail: true,
-                    failMessage: "psql: error: connection to server on socket \"/var/run/postgresql/.s.PGSQL.5432\" failed: No such file or directory"
+                { 
+                    id: 2, 
+                    title: "SQL Проверка", 
+                    task: "Попробуйте выполнить psql -c 'SELECT 1;' для проверки коннекта.",
+                    theory: "Даже если сервис 'alive', он может не принимать подключения (Zombie state).",
+                    cmd: "psql -c 'SELECT 1;'",
+                    hint: "psql -c 'SELECT 1;'"
                 },
-                {
-                    id: 3,
-                    title: "Исправление конфигурации",
-                    task: "Обнаружено, что порт в конфиге изменен вручную. Исправьте ошибку в /etc/postgresql/postgresql.conf.",
-                    theory: "В реальном сценарии вы бы использовали vim или nano, но здесь мы имитируем исправление через перенаправление вывода или sed.",
-                    hint: "Используйте: sed -i 's/port=5433/port=5432/' /etc/postgresql/postgresql.conf && systemctl start postgresql",
-                    command: "systemctl start postgresql",
-                    nextState: { pgStatus: 'active' }
+                { 
+                    id: 3, 
+                    title: "Фикс конфига", 
+                    task: "Исправьте порт в конфиге и перезапустите сервис.",
+                    theory: "Ошибка порта 5433 -> 5432. Мы имитируем исправление через systemctl start (после ложного исправления).",
+                    cmd: "systemctl start postgresql",
+                    hint: "systemctl start postgresql"
                 }
             ]
         };
 
-        const App = () => {
-            const [currentStep, setCurrentStep] = useState(0);
-            const [completedSteps, setCompletedSteps] = useState([]);
-            const [pgState, setPgState] = useState({ pgStatus: 'stopped', port: 5433 });
-            const [terminal, setTerminal] = useState(null);
+        function App() {
+            const [stepIdx, setStepIdx] = useState(0);
+            const [completed, setCompleted] = useState([]);
+            const [pgState, setPgState] = useState({ active: false, port: 5433 });
             const terminalRef = useRef(null);
-            const fitAddonRef = useRef(null);
+            const term = useRef(null);
+
+            const handleCommand = (input) => {
+                const cmd = input.trim();
+                const step = SCENARIO.steps[stepIdx];
+
+                if (cmd === 'help') {
+                    term.current.writeln('Доступно: systemctl, psql, ls, help, reset');
+                    return;
+                }
+
+                if (cmd === 'systemctl status postgresql') {
+                    if (pgState.active) {
+                        term.current.writeln('● postgresql.service - PostgreSQL RDBMS\r\n   Active: \x1b[1;32mactive (running)\x1b[0m');
+                    } else {
+                        term.current.writeln('○ postgresql.service - PostgreSQL RDBMS\r\n   Active: \x1b[1;31minactive (dead)\x1b[0m');
+                    }
+                    if (stepIdx === 0) advance();
+                } else if (cmd.startsWith('psql')) {
+                    if (pgState.active) {
+                        term.current.writeln(' ?column? \r\n----------\r\n        1\r\n(1 row)');
+                    } else {
+                        term.current.writeln('\x1b[1;31mpsql: error: connection to server failed: Connection refused\x1b[0m');
+                    }
+                    if (stepIdx === 1) advance();
+                } else if (cmd.includes('systemctl start')) {
+                    setPgState({ ...pgState, active: true });
+                    term.current.writeln('Starting PostgreSQL...');
+                    setTimeout(() => {
+                        term.current.writeln('\x1b[1;32mService started on port 5432\x1b[0m');
+                        if (stepIdx === 2) advance();
+                    }, 800);
+                } else {
+                    term.current.writeln(`bash: ${cmd}: command not found`);
+                }
+            };
+
+            const advance = () => {
+                setCompleted(prev => [...prev, SCENARIO.steps[stepIdx].id]);
+                if (stepIdx < SCENARIO.steps.length - 1) {
+                    setStepIdx(prev => prev + 1);
+                } else {
+                    setStepIdx(SCENARIO.steps.length); // Final state
+                }
+            };
 
             useEffect(() => {
-                const term = new Terminal({
+                term.current = new Terminal({
                     cursorBlink: true,
                     fontSize: 14,
                     fontFamily: 'JetBrains Mono',
-                    theme: {
-                        background: '#0d1117',
-                        foreground: '#c9d1d9',
-                        cursor: '#58a6ff'
-                    }
+                    theme: { background: '#0d1117', foreground: '#c9d1d9', cursor: '#58a6ff' }
                 });
-                const fitAddon = new window.TerminalAddonFit.FitAddon();
-                term.loadAddon(fitAddon);
-                term.open(terminalRef.current);
-                fitAddon.fit();
                 
-                term.writeln('\x1b[1;32mDRE Platform v1.0\x1b[0m');
-                term.writeln('Welcome to Linux DB Lab. Type "help" for instructions.');
-                term.write('\r\nuser@dre-platform:~$ ');
+                // Robust addon loading
+                const FitAddonClass = (window.FitAddon && window.FitAddon.FitAddon) || 
+                                     (window.TerminalAddonFit && window.TerminalAddonFit.FitAddon);
+                
+                if (FitAddonClass) {
+                    const fit = new FitAddonClass();
+                    term.current.loadAddon(fit);
+                    term.current.open(terminalRef.current);
+                    setTimeout(() => fit.fit(), 100);
+                } else {
+                    term.current.open(terminalRef.current);
+                }
 
-                let currentInput = '';
-                term.onKey(({ key, domEvent }) => {
-                    const char = key;
-                    if (domEvent.keyCode === 13) { // Enter
-                        term.write('\r\n');
-                        handleCommand(currentInput, term);
-                        currentInput = '';
-                        term.write('user@dre-platform:~$ ');
-                    } else if (domEvent.keyCode === 8) { // Backspace
-                        if (currentInput.length > 0) {
-                            currentInput = currentInput.slice(0, -1);
-                            term.write('\b \b');
+                term.current.writeln('\x1b[1;36mDRE EDUCATIONAL PLATFORM INITIALIZED\x1b[0m');
+                term.current.writeln('System healthy. Postgres node: \x1b[1;33mdre-db-01\x1b[0m');
+                term.current.write('\r\nuser@dre-node:~$ ');
+
+                let input = '';
+                term.current.onKey(({ key, domEvent }) => {
+                    if (domEvent.keyCode === 13) {
+                        term.current.write('\r\n');
+                        handleCommand(input);
+                        input = '';
+                        term.current.write('user@dre-node:~$ ');
+                    } else if (domEvent.keyCode === 8) {
+                        if (input.length > 0) {
+                            input = input.slice(0, -1);
+                            term.current.write('\b \b');
                         }
-                    } else if (char.charCodeAt(0) >= 32) {
-                        currentInput += char;
-                        term.write(char);
+                    } else if (key.charCodeAt(0) >= 32) {
+                        input += key;
+                        term.current.write(key);
                     }
                 });
+                return () => term.current.dispose();
+            }, [stepIdx, pgState]);
 
-                setTerminal(term);
-                fitAddonRef.current = fitAddon;
-
-                return () => term.dispose();
-            }, []);
-
-            const handleCommand = (input, term) => {
-                const cmd = input.trim();
-                if (!cmd) return;
-
-                const step = SCENARIO.steps[currentStep];
-
-                if (cmd === 'help') {
-                    term.writeln('Доступные команды: ls, systemctl, psql, help, clear, reset');
-                    return;
-                }
-                if (cmd === 'clear') {
-                    term.clear();
-                    return;
-                }
-                if (cmd === 'reset') {
-                    handleReset();
-                    term.writeln('Состояние сброшено.');
-                    return;
-                }
-
-                // Mock Shell Logic
-                if (cmd.startsWith('systemctl status postgresql')) {
-                    if (pgState.pgStatus === 'active') {
-                        term.writeln('● postgresql.service - PostgreSQL RDBMS');
-                        term.writeln('   Active: \x1b[1;32mactive (running)\x1b[0m since Mon 2026-03-30');
-                    } else {
-                        term.writeln('○ postgresql.service - PostgreSQL RDBMS');
-                        term.writeln('   Active: \x1b[1;31minactive (dead)\x1b[0m');
-                    }
-                } else if (cmd.startsWith('psql')) {
-                    if (pgState.pgStatus === 'active') {
-                        term.writeln(' ?column? \r\n----------\r\n        1\r\n(1 row)');
-                    } else {
-                        term.writeln('\x1b[1;31mpsql: error: connection to server failed: Connection refused\x1b[0m');
-                    }
-                } else if (cmd.includes('sed') || cmd.includes('systemctl start')) {
-                    setPgState(prev => ({ ...prev, pgStatus: 'active' }));
-                    term.writeln('Service starting...');
-                    setTimeout(() => term.writeln('Service started successfully.'), 500);
-                } else {
-                    term.writeln(`bash: ${cmd.split(' ')[0]}: command not found`);
-                }
-
-                // Step Progression Logic
-                if (cmd.includes(step.command) || (step.expectFail && cmd.startsWith('psql'))) {
-                    if (!completedSteps.includes(step.id)) {
-                        setCompletedSteps(prev => [...prev, step.id]);
-                        if (currentStep < SCENARIO.steps.length - 1) {
-                            // Automatically move to next step after a delay
-                            setTimeout(() => {
-                                setCurrentStep(prev => prev + 1);
-                                term.writeln(`\r\n\x1b[1;34m[DRE SYSTEM] Текущий шаг: ${SCENARIO.steps[currentStep + 1].title}\x1b[0m`);
-                            }, 1000);
-                        }
-                    }
-                }
-            };
-
-            const handleReset = () => {
-                setCurrentStep(0);
-                setCompletedSteps([]);
-                setPgState({ pgStatus: 'stopped', port: 5433 });
-                terminal && terminal.reset();
-                terminal && terminal.write('user@dre-platform:~$ ');
-            };
-
-            return (
-                <div class="flex h-screen flex-col bg-[#0d1117]">
-                    {/* Header */}
-                    <header class="flex h-12 items-center justify-between border-b border-[#30363d] bg-[#161b22] px-4">
+            return html`
+                <div class="flex flex-col h-screen">
+                    <header class="h-14 border-b border-[#30363d] bg-[#161b22] flex items-center justify-between px-6">
                         <div class="flex items-center space-x-3">
-                            <Database class="h-5 w-5 text-[#58a6ff]" />
-                            <h1 class="text-sm font-semibold tracking-wide text-[#f0f6fc]">DRE Educational Platform <span class="ml-2 text-[10px] text-[#8b949e] uppercase bg-[#30363d] px-2 py-0.5 rounded">Prototype</span></h1>
+                            <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center font-bold text-white">D</div>
+                            <span class="font-bold tracking-tight text-sm uppercase">DRE platform <span class="text-xs font-normal text-gray-500 ml-2">v1.2.0</span></span>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <button onClick={handleReset} class="flex items-center space-x-2 rounded-md px-3 py-1 text-xs font-medium text-[#c9d1d9] hover:bg-[#30363d] transition-colors">
-                                <RotateCcw class="h-4 w-4" />
-                                <span>Reset Environment</span>
-                            </button>
+                            <div class="flex items-center space-x-2 text-xs text-gray-400">
+                                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                <span>SIMULATOR CONNECTED</span>
+                            </div>
                         </div>
                     </header>
 
-                    <div class="flex flex-1 overflow-hidden">
-                        {/* Left Sidebar - Navigation */}
-                        <aside class="w-64 border-r border-[#30363d] bg-[#0d1117] hidden lg:flex flex-col">
-                            <div class="p-4">
-                                <h3 class="text-xs font-bold uppercase text-[#8b949e] mb-4">Курс: PostgreSQL Admin</h3>
-                                <div class="space-y-1">
-                                    <div class="flex items-center space-x-2 rounded px-2 py-1 text-sm bg-[#161b22] text-[#f0f6fc]">
-                                        <BookOpen class="h-4 w-4" />
-                                        <span>Сценарии DRE</span>
-                                    </div>
-                                    <div class="pl-6 space-y-1 mt-1 border-l border-[#30363d] ml-4">
-                                        <div class="text-xs py-1 text-[#58a6ff] cursor-pointer font-medium italic">Recovery (In Progress)</div>
-                                        <div class="text-xs py-1 text-[#8b949e] hover:text-[#c9d1d9] cursor-not-allowed">Optimization</div>
-                                        <div class="text-xs py-1 text-[#8b949e] hover:text-[#c9d1d9] cursor-not-allowed">Migration</div>
-                                    </div>
+                    <div class="flex-1 flex overflow-hidden">
+                        <!-- Navigation -->
+                        <aside class="w-64 border-r border-[#30363d] p-4 hidden md:block">
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-6">Каталог Сценариев</h3>
+                            <div class="space-y-1">
+                                <div class="p-2 rounded bg-blue-500/10 text-[#58a6ff] text-xs font-semibold flex items-center space-x-2">
+                                    <span>●</span> <span>Recovery Tactics</span>
+                                </div>
+                                <div class="p-2 rounded text-gray-500 text-xs hover:bg-gray-800 cursor-not-allowed">
+                                    <span>○</span> <span>Sharding Setup</span>
                                 </div>
                             </div>
                         </aside>
 
-                        {/* Main Content Area */}
-                        <main class="flex flex-1 flex-col overflow-hidden">
-                            {/* Top Panel - Theory & Task */}
-                            <div class="flex-1 overflow-y-auto p-6 bg-[#0d1117]">
-                                <div class="max-w-3xl mx-auto space-y-8 animate-fade-in">
-                                    <div class="space-y-4">
-                                        <h2 class="text-2xl font-bold text-[#f0f6fc]">{SCENARIO.title}</h2>
-                                        <p class="text-[#8b949e] leading-relaxed italic">{SCENARIO.description}</p>
+                        <!-- Main content -->
+                        <main class="flex-1 flex flex-col bg-[#0d1117] relative">
+                            <div class="flex-1 overflow-y-auto p-8">
+                                <div class="max-w-3xl mx-auto space-y-8">
+                                    <div class="space-y-2">
+                                        <h2 class="text-3xl font-bold gradient-text">${SCENARIO.title}</h2>
+                                        <p class="text-gray-400 text-sm italic">${SCENARIO.description}</p>
                                     </div>
 
-                                    <div class="glass rounded-xl p-6 space-y-4 border-[#30363d]">
-                                        <div class="flex items-center space-x-2">
-                                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-[#58a6ff] text-[10px] font-bold text-[#0d1117]">
-                                                {SCENARIO.steps[currentStep].id}
-                                            </div>
-                                            <h3 class="text-lg font-semibold text-[#f0f6fc]">{SCENARIO.steps[currentStep].title}</h3>
-                                        </div>
-                                        
-                                        <div class="prose prose-invert prose-sm">
-                                            <p class="text-[#c9d1d9]">{SCENARIO.steps[currentStep].theory}</p>
-                                        </div>
+                                    <div class="glass-card p-6 space-y-6 animate-slide">
+                                        ${stepIdx < SCENARIO.steps.length ? html`
+                                            <div class="space-y-4">
+                                                <div class="flex items-center justify-between">
+                                                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest px-2 py-1 bg-blue-400/10 rounded">Шаг ${SCENARIO.steps[stepIdx].id}</span>
+                                                    <span class="text-[10px] text-gray-500">DRE-TACTIC-ID: 0x24</span>
+                                                </div>
+                                                <h3 class="text-xl font-bold text-white">${SCENARIO.steps[stepIdx].title}</h3>
+                                                <p class="text-sm text-gray-300 leading-relaxed">${SCENARIO.steps[stepIdx].theory}</p>
+                                                
+                                                <div class="bg-blue-500/5 border-l-4 border-blue-500 p-4 rounded-r">
+                                                    <p class="text-sm font-semibold text-white mb-1">ЗАДАЧА:</p>
+                                                    <p class="text-sm text-blue-100">${SCENARIO.steps[stepIdx].task}</p>
+                                                </div>
 
-                                        <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                                            <div class="flex items-start space-x-3">
-                                                <Play class="h-4 w-4 text-[#58a6ff] mt-1" />
-                                                <div class="space-y-1">
-                                                    <span class="text-xs font-bold text-[#58a6ff] uppercase">Задание:</span>
-                                                    <p class="text-sm text-[#f0f6fc]">{SCENARIO.steps[currentStep].task}</p>
+                                                <div class="text-[10px] text-gray-500 flex items-center space-x-1">
+                                                    <span>💡</span> <span>Подсказка: ${SCENARIO.steps[stepIdx].hint}</span>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div class="flex items-center space-x-2 text-xs text-[#8b949e]">
-                                            <AlertCircle class="h-3 w-3" />
-                                            <span>Подсказка: {SCENARIO.steps[currentStep].hint}</span>
-                                        </div>
+                                        ` : html`
+                                            <div class="text-center py-8 space-y-4">
+                                                <div class="text-5xl">🏆</div>
+                                                <h3 class="text-2xl font-bold text-green-400">Сценарий выполнен успешно!</h3>
+                                                <p class="text-sm text-gray-400">Вы восстановили PostgreSQL и подтвердили навыки Data Reliability Engineering.</p>
+                                                <button onClick=${() => window.location.reload()} class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-all">Начать заново</button>
+                                            </div>
+                                        `}
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Bottom Panel - Terminal */}
-                            <div class="h-[300px] border-t border-[#30363d] flex flex-col glass">
-                                <div class="flex h-9 items-center justify-between px-4 bg-[#161b22]">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="flex items-center space-x-2 text-xs font-medium text-[#c9d1d9] border-b-2 border-[#58a6ff] h-full px-2">
-                                            <TerminalIcon class="h-3.5 w-3.5" />
-                                            <span>Micro-Lab Terminal</span>
-                                        </div>
-                                        <div class="flex items-center space-x-2 text-xs font-medium text-[#8b949e] px-2 opacity-50">
-                                            <Activity class="h-3.5 w-3.5" />
-                                            <span>Logs</span>
-                                        </div>
+                            <!-- Terminal Container -->
+                            <div class="h-72 border-t border-[#30363d] bg-black/50 flex flex-col">
+                                <div class="px-4 h-8 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between">
+                                    <div class="flex space-x-2">
+                                        <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                                        <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                                        <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
                                     </div>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="h-2 w-2 rounded-full bg-[#3fb950] animate-pulse"></div>
-                                        <span class="text-[10px] text-[#8b949e] font-mono">DRE-SIMULATOR RUNNING</span>
-                                    </div>
+                                    <span class="text-[10px] text-gray-500 font-mono tracking-tighter">bash — 80x24</span>
                                 </div>
-                                <div ref={terminalRef} class="flex-1 overflow-hidden p-2 xterm-container"></div>
+                                <div ref=${terminalRef} class="flex-1 p-2 xterm-container"></div>
                             </div>
                         </main>
 
-                        {/* Right Sidebar - Progress */}
-                        <aside class="w-80 border-l border-[#30363d] bg-[#0d1117] hidden xl:flex flex-col">
-                            <div class="p-4 border-b border-[#30363d]">
-                                <h3 class="text-sm font-semibold text-[#f0f6fc]">Статус выполнения</h3>
-                            </div>
-                            <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                                {SCENARIO.steps.map((step, idx) => (
-                                    <div key={step.id} class={`flex items-start space-x-3 p-3 rounded-lg border transition-all ${
-                                        idx === currentStep ? 'bg-[#161b22] border-[#58a6ff]/50' : 
-                                        completedSteps.includes(step.id) ? 'bg-[#161b22]/50 border-[#3fb950]/30 opacity-80' : 
-                                        'border-[#30363d] opacity-50'
-                                    }`}>
-                                        <div class="mt-0.5">
-                                            {completedSteps.includes(step.id) ? (
-                                                <CheckCircle2 class="h-5 w-5 text-[#3fb950]" />
-                                            ) : (
-                                                <div class={`h-5 w-5 rounded-full border-2 flex items-center justify-center text-[10px] ${
-                                                    idx === currentStep ? 'border-[#58a6ff] text-[#58a6ff]' : 'border-[#30363d] text-[#8b949e]'
-                                                }`}>
-                                                    {step.id}
-                                                </div>
-                                            )}
+                        <!-- Progress sidebar -->
+                        <aside class="w-80 border-l border-[#30363d] p-6 bg-[#0d1117] hidden xl:block">
+                            <h3 class="text-xs font-bold text-gray-400 mb-6 uppercase tracking-wider">Ваш Прогресс</h3>
+                            <div class="space-y-4">
+                                ${SCENARIO.steps.map((s, idx) => html`
+                                    <div key=${s.id} class="flex items-start space-x-4">
+                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${completed.includes(s.id) ? 'bg-green-500 border-green-500' : idx === stepIdx ? 'border-blue-500 text-blue-500' : 'border-[#30363d] text-gray-600'}">
+                                            ${completed.includes(s.id) ? html`<span>✓</span>` : html`<span class="text-[10px]">${s.id}</span>`}
                                         </div>
                                         <div class="space-y-1">
-                                            <h4 class={`text-sm font-medium ${idx === currentStep ? 'text-[#f0f6fc]' : 'text-[#8b949e]'}`}>
-                                                {step.title}
-                                            </h4>
-                                            {idx === currentStep && (
-                                                <p class="text-[11px] text-[#58a6ff] font-medium leading-tight">Текущая задача...</p>
-                                            )}
+                                            <p class="text-sm font-semibold transition-all ${idx === stepIdx ? 'text-white' : 'text-gray-500'}">${s.title}</p>
+                                            ${idx === stepIdx && html`
+                                                <div class="flex items-center space-x-2">
+                                                    <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                                                    <p class="text-[10px] text-blue-500 font-bold uppercase">В процессе</p>
+                                                </div>
+                                            `}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                            <div class="p-4 border-t border-[#30363d] bg-[#161b22]">
-                                <div class="text-xs flex justify-between mb-2">
-                                    <span class="text-[#8b949e]">Всего пройдено:</span>
-                                    <span class="text-[#f0f6fc] font-bold">{completedSteps.length} / {SCENARIO.steps.length}</span>
-                                </div>
-                                <div class="h-1.5 w-full bg-[#30363d] rounded-full overflow-hidden">
-                                    <div 
-                                        class="h-full bg-[#3fb950] transition-all duration-1000" 
-                                        style={{ width: `${(completedSteps.length / SCENARIO.steps.length) * 100}%` }}
-                                    ></div>
-                                </div>
+                                `)}
                             </div>
                         </aside>
                     </div>
                 </div>
-            );
-        };
+            `;
+        }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        root.render(React.createElement(App));
     </script>
 </body>
 </html>
