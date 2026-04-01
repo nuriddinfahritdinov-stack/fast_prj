@@ -6,94 +6,73 @@
     <title>DRE Lab — Oracle Database Справочник</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #f8fafc;
-            --accent: #2563eb;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --code-bg: #f1f5f9;
-        }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-primary); color: var(--text-main); line-height: 1.6; }
-        article { font-family: 'Lora', serif; max-width: 56rem; margin: 0 auto; }
-        h1, h2, h3, h4 { font-family: 'Inter', sans-serif; }
-        code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9em; color: #e11d48; }
-        pre { background: #0f172a; color: #e2e8f0; border-radius: 0.75rem; padding: 1.25rem; overflow-x: auto; margin: 1rem 0; }
-        pre code { background: transparent; color: inherit; padding: 0; font-size: 0.875rem; }
-        .section-anchor { scroll-margin-top: 2rem; }
-        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
-        th { text-align: left; background: var(--bg-primary); padding: 0.75rem; border-bottom: 2px solid var(--border); color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
-        td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-        .cmd-col { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 500; width: 35%; }
-        .sidebar { position: sticky; top: 2rem; height: fit-content; }
-        @media (max-width: 1024px) { .sidebar { display: none; } }
-    </style>
+        <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
 </head>
-<body class="min-h-screen p-4 md:p-12">
+<body class="min-h-screen p-4 md:p-12 ref-page">
 
     <div class="flex flex-col lg:flex-row gap-12 max-w-7xl mx-auto">
 
         <!-- Sidebar -->
         <aside class="sidebar w-64 shrink-0">
             <nav class="space-y-1">
-                <a href="index.html" class="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-bold text-sm mb-8 transition-colors">
+                <a href="index.html" class="flex items-center gap-2 hover: font-bold text-sm mb-8 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     На главную
                 </a>
-                <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-4">Содержание</p>
-                <a href="#status"    class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">1. Статус и требования</a>
-                <a href="#env"       class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">2. Deployment &amp; Env</a>
-                <a href="#instance"  class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">3. Управление инстансом</a>
-                <a href="#rman"      class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">4. Проверка бэкапов (RMAN)</a>
-                <a href="#dataguard" class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">5. Репликация (Data Guard)</a>
-                <a href="#sessions"  class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">6. Анализ сессий</a>
-                <a href="#trace"     class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">7. Trace-логи</a>
-                <a href="#abs"       class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">8. Высоконагруженные проекты</a>
-                <a href="#sources"   class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">9. Официальные источники</a>
+                <p class="text-[10px] uppercase tracking-widest font-bold mb-4">Содержание</p>
+                <a href="#status"    class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">1. Статус и требования</a>
+                <a href="#env"       class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">2. Deployment &amp; Env</a>
+                <a href="#instance"  class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">3. Управление инстансом</a>
+                <a href="#rman"      class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">4. Проверка бэкапов (RMAN)</a>
+                <a href="#dataguard" class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">5. Репликация (Data Guard)</a>
+                <a href="#sessions"  class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">6. Анализ сессий</a>
+                <a href="#trace"     class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">7. Trace-логи</a>
+                <a href="#abs"       class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">8. Высоконагруженные проекты</a>
+                <a href="#sources"   class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">9. Официальные источники</a>
             </nav>
-            <div class="mt-12 p-4 bg-red-600 rounded-2xl text-white shadow-lg shadow-red-200">
+            <div class="mt-12 p-4 rounded-2xl shadow-lg">
                 <p class="text-xs font-bold uppercase tracking-tighter opacity-80 mb-2">Модуль 03</p>
                 <p class="text-sm leading-snug">Oracle 19c / 21c Enterprise Edition. Требуется знание Bash и переменных окружения.</p>
-                <a href="lab.html" class="inline-block mt-4 text-xs bg-white text-red-600 font-bold py-2 px-4 rounded-lg hover:bg-red-50 transition-colors">Перейти к практике →</a>
+                <a href="lab.html" class="inline-block mt-4 text-xs font-bold py-2 px-4 rounded-lg hover: transition-colors">Перейти к практике →</a>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <article class="flex-1 bg-white p-8 md:p-16 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        <article class="flex-1 p-8 md:p-16 rounded-3xl shadow-xl border">
 
-            <header class="mb-12 border-b border-slate-100 pb-12 text-center md:text-left">
-                <span class="inline-block px-3 py-1 bg-red-50 text-red-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-6">DRE Engineering Handbook · Модуль 03</span>
-                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight leading-none">
+            <header class="mb-12 border-b pb-12 text-center md:text-left">
+                <span class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full mb-6">DRE Engineering Handbook · Модуль 03</span>
+                <h1 class="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight leading-none">
                     Справочник Oracle DBA
                 </h1>
-                <p class="text-xl text-slate-500 max-w-2xl leading-relaxed">
+                <p class="text-xl max-w-2xl leading-relaxed">
                     Управление инстансами, RMAN-бэкапы, Data Guard и диагностика производительности для Oracle 19c/21c.
                 </p>
             </header>
 
             <!-- Section 1 -->
             <section id="status" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">1. Статус и требования</h2>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">1. Статус и требования</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">Требование</p>
-                        <p class="text-sm font-semibold text-slate-700">01_Bash_Core.md — переменные окружения и Here-Documents</p>
+                    <div class="p-4 border rounded-xl">
+                        <p class="text-xs uppercase tracking-widest font-bold mb-1">Требование</p>
+                        <p class="text-sm font-semibold">01_Bash_Core.md — переменные окружения и Here-Documents</p>
                     </div>
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">Версия</p>
-                        <p class="text-sm font-semibold text-slate-700">Oracle 19c / 21c (Enterprise Edition)</p>
+                    <div class="p-4 border rounded-xl">
+                        <p class="text-xs uppercase tracking-widest font-bold mb-1">Версия</p>
+                        <p class="text-sm font-semibold">Oracle 19c / 21c (Enterprise Edition)</p>
                     </div>
                 </div>
             </section>
 
             <!-- Section 2 -->
             <section id="env" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">2. Deployment &amp; Environment</h2>
-                <p class="mb-4 text-slate-700">
-                    Установка Oracle Database — сложный многоступенчатый процесс. Рекомендуемый ресурс: <a href="https://oracle-base.com/" class="text-blue-600 hover:underline" target="_blank">oracle-base.com</a>.
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">2. Deployment &amp; Environment</h2>
+                <p class="mb-4">
+                    Установка Oracle Database — сложный многоступенчатый процесс. Рекомендуемый ресурс: <a href="https://oracle-base.com/" class="hover:underline" target="_blank">oracle-base.com</a>.
                 </p>
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Обязательные переменные окружения</h3>
+                <h3 class="text-lg font-bold mb-4">Обязательные переменные окружения</h3>
                 <table>
                     <thead><tr><th>Переменная</th><th>Значение и назначение</th></tr></thead>
                     <tbody>
@@ -106,17 +85,17 @@
 
             <!-- Section 3 -->
             <section id="instance" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">3. Управление инстансом</h2>
-                <p class="mb-6 text-slate-700">В Oracle инстанс и база данных — разные сущности. Сначала запускаются процессы (Instance), затем монтируется и открывается база.</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">3. Управление инстансом</h2>
+                <p class="mb-6">В Oracle инстанс и база данных — разные сущности. Сначала запускаются процессы (Instance), затем монтируется и открывается база.</p>
 
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Запуск инстанса из Bash</h3>
+                <h3 class="text-lg font-bold mb-4">Запуск инстанса из Bash</h3>
                 <pre><code>sqlplus / as sysdba &lt;&lt;EOF
 STARTUP;
 EXIT;
 EOF</code></pre>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Проверка статуса (Healthcheck)</h3>
-                <p class="text-sm text-slate-600 mb-4">Флаг <code>-s</code> (silent) убирает баннеры Oracle и возвращает чистый ответ.</p>
+                <h3 class="text-lg font-bold mt-8 mb-4">Проверка статуса (Healthcheck)</h3>
+                <p class="text-sm mb-4">Флаг <code>-s</code> (silent) убирает баннеры Oracle и возвращает чистый ответ.</p>
                 <pre><code># Проверка: открыта ли база на чтение/запись?
 STATUS=$(sqlplus -s / as sysdba &lt;&lt;EOF
 SET HEAD OFF FEEDBACK OFF;
@@ -125,15 +104,15 @@ EXIT;
 EOF
 )
 echo "Текущий статус инстанса: $STATUS"</code></pre>
-                <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl mt-4">
-                    <p class="text-sm text-amber-800">Символ <code>\$</code> экранируется в Bash-скрипте, чтобы он не воспринимался как переменная оболочки.</p>
+                <div class="border-l-4 p-4 rounded-r-xl mt-4">
+                    <p class="text-sm">Символ <code>\$</code> экранируется в Bash-скрипте, чтобы он не воспринимался как переменная оболочки.</p>
                 </div>
             </section>
 
             <!-- Section 4 -->
             <section id="rman" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">4. Проверка актуальности бэкапов (RMAN)</h2>
-                <p class="mb-6 text-slate-700">Запрос показывает все задачи RMAN за последние 48 часов.</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">4. Проверка актуальности бэкапов (RMAN)</h2>
+                <p class="mb-6">Запрос показывает все задачи RMAN за последние 48 часов.</p>
                 <pre><code>sqlplus -s / as sysdba &lt;&lt;EOF
 SET LINESIZE 150 PAGESIZE 20;
 COL status FORMAT a10;
@@ -150,35 +129,35 @@ EOF</code></pre>
 
             <!-- Section 5 -->
             <section id="dataguard" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">5. Мониторинг репликации (Data Guard)</h2>
-                <p class="mb-6 text-slate-700">В архитектуре Data Guard необходимо проверять «отставание» (lag) Standby-сервера от Primary.</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">5. Мониторинг репликации (Data Guard)</h2>
+                <p class="mb-6">В архитектуре Data Guard необходимо проверять «отставание» (lag) Standby-сервера от Primary.</p>
 
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Проверка задержки Apply Lag</h3>
-                <p class="text-sm text-slate-600 mb-3">Выполняется на Standby-сервере:</p>
+                <h3 class="text-lg font-bold mb-4">Проверка задержки Apply Lag</h3>
+                <p class="text-sm mb-3">Выполняется на Standby-сервере:</p>
                 <pre><code>sqlplus -s / as sysdba &lt;&lt;EOF
 SET HEAD OFF;
 SELECT value FROM v\$dataguard_stats WHERE name = 'apply lag';
 EXIT;
 EOF</code></pre>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Проверка статуса процессов синхронизации</h3>
+                <h3 class="text-lg font-bold mt-8 mb-4">Проверка статуса процессов синхронизации</h3>
                 <pre><code>sqlplus -s / as sysdba &lt;&lt;EOF
 COL process FORMAT a10;
 COL status FORMAT a12;
 SELECT process, status, sequence# FROM v\$managed_standby WHERE process LIKE 'MRP%';
 EXIT;
 EOF</code></pre>
-                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl mt-4">
-                    <p class="text-sm text-slate-600">Если процесс MRP имеет статус <code>APPLYING_LOG</code> — репликация идет в штатном режиме.</p>
+                <div class="border p-4 rounded-xl mt-4">
+                    <p class="text-sm">Если процесс MRP имеет статус <code>APPLYING_LOG</code> — репликация идет в штатном режиме.</p>
                 </div>
             </section>
 
             <!-- Section 6 -->
             <section id="sessions" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">6. Анализ активных сессий (Monitoring)</h2>
-                <p class="mb-6 text-slate-700">Главный хаб информации о текущей активности — представление <code>V$SESSION</code>.</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">6. Анализ активных сессий (Monitoring)</h2>
+                <p class="mb-6">Главный хаб информации о текущей активности — представление <code>V$SESSION</code>.</p>
 
-                <h3 class="text-lg font-bold text-slate-800 mb-4">ТОП-10 сессий по потреблению ресурсов</h3>
+                <h3 class="text-lg font-bold mb-4">ТОП-10 сессий по потреблению ресурсов</h3>
                 <pre><code>-- Выполняется в sqlplus или любом GUI
 SELECT s.sid, s.serial#, s.username, s.status, s.last_call_et AS duration_sec,
        s.event, s.wait_class, q.sql_text
@@ -189,21 +168,21 @@ WHERE s.status = 'ACTIVE'
 ORDER BY s.last_call_et DESC;</code></pre>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="font-mono text-xs text-blue-600 font-bold mb-1">last_call_et</p>
-                        <p class="text-xs text-slate-600">Сколько секунд длится текущая операция</p>
+                    <div class="p-3 border rounded-xl">
+                        <p class="font-mono text-xs font-bold mb-1">last_call_et</p>
+                        <p class="text-xs">Сколько секунд длится текущая операция</p>
                     </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="font-mono text-xs text-blue-600 font-bold mb-1">event</p>
-                        <p class="text-xs text-slate-600">Чего именно ждет сессия</p>
+                    <div class="p-3 border rounded-xl">
+                        <p class="font-mono text-xs font-bold mb-1">event</p>
+                        <p class="text-xs">Чего именно ждет сессия</p>
                     </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="font-mono text-xs text-blue-600 font-bold mb-1">wait_class</p>
-                        <p class="text-xs text-slate-600">Категория ожидания</p>
+                    <div class="p-3 border rounded-xl">
+                        <p class="font-mono text-xs font-bold mb-1">wait_class</p>
+                        <p class="text-xs">Категория ожидания</p>
                     </div>
                 </div>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Поиск «виновника» блокировок</h3>
+                <h3 class="text-lg font-bold mt-8 mb-4">Поиск «виновника» блокировок</h3>
                 <pre><code>SELECT sid, serial#, username, blocking_session,
        final_blocking_session, wait_class, event
 FROM v$session
@@ -212,29 +191,29 @@ WHERE blocking_session IS NOT NULL;</code></pre>
 
             <!-- Section 7 -->
             <section id="trace" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">7. Чтение Trace-логов (Диагностика)</h2>
-                <p class="mb-6 text-slate-700">Если SQL-запрос выполняется медленно «внутри», стандартных таблиц мониторинга недостаточно — вступают в дело Trace-файлы.</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">7. Чтение Trace-логов (Диагностика)</h2>
+                <p class="mb-6">Если SQL-запрос выполняется медленно «внутри», стандартных таблиц мониторинга недостаточно — вступают в дело Trace-файлы.</p>
 
-                <h3 class="text-lg font-bold text-slate-800 mb-4">ADR — Automatic Diagnostic Repository</h3>
+                <h3 class="text-lg font-bold mb-4">ADR — Automatic Diagnostic Repository</h3>
                 <pre><code># Узнать путь к диагностическим файлам
 sqlplus -s / as sysdba &lt;&lt;EOF
 SHOW PARAMETER diagnostic_dest;
 EXIT;
 EOF</code></pre>
-                <p class="text-sm text-slate-600 mt-3 mb-6">Трейсы текущих сессий находятся в: <code>$DIAG_DEST/diag/rdbms/&lt;db_name&gt;/&lt;instance_name&gt;/trace/</code></p>
+                <p class="text-sm mt-3 mb-6">Трейсы текущих сессий находятся в: <code>$DIAG_DEST/diag/rdbms/&lt;db_name&gt;/&lt;instance_name&gt;/trace/</code></p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="font-mono text-sm text-blue-600 font-bold mb-2">alert_&lt;SID&gt;.log</p>
-                        <p class="text-xs text-slate-600">Главный журнал событий. Ошибки ORA-, перезапуски, проблемы с архивацией.</p>
+                    <div class="p-4 border rounded-xl">
+                        <p class="font-mono text-sm font-bold mb-2">alert_&lt;SID&gt;.log</p>
+                        <p class="text-xs">Главный журнал событий. Ошибки ORA-, перезапуски, проблемы с архивацией.</p>
                     </div>
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="font-mono text-sm text-blue-600 font-bold mb-2">*.trc</p>
-                        <p class="text-xs text-slate-600">User Trace Files — детальные отчеты о работе конкретной сессии.</p>
+                    <div class="p-4 border rounded-xl">
+                        <p class="font-mono text-sm font-bold mb-2">*.trc</p>
+                        <p class="text-xs">User Trace Files — детальные отчеты о работе конкретной сессии.</p>
                     </div>
                 </div>
 
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Включение трейсирования</h3>
+                <h3 class="text-lg font-bold mb-4">Включение трейсирования</h3>
                 <pre><code>-- Включаем сбор детальной статистики для текущей сессии
 EXEC DBMS_MONITOR.SESSION_TRACE_ENABLE(waits=&gt;TRUE, binds=&gt;TRUE);
 -- После выполнения тяжелого кода выключаем
@@ -243,54 +222,54 @@ EXEC DBMS_MONITOR.SESSION_TRACE_DISABLE();</code></pre>
 
             <!-- Section 8 -->
             <section id="abs" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">8. Полезности для высоконагруженных проектов (ABS)</h2>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">8. Полезности для высоконагруженных проектов (ABS)</h2>
                 <div class="space-y-4">
-                    <div class="flex gap-4 p-4 border border-slate-200 rounded-xl">
-                        <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">1</span>
-                        <div><p class="font-semibold text-slate-800 text-sm mb-1">Скрытые ожидания</p><p class="text-xs text-slate-600">Задержки при записи в redo log, тормозящие все транзакции.</p></div>
+                    <div class="flex gap-4 p-4 border rounded-xl">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0">1</span>
+                        <div><p class="font-semibold text-sm mb-1">Скрытые ожидания</p><p class="text-xs">Задержки при записи в redo log, тормозящие все транзакции.</p></div>
                     </div>
-                    <div class="flex gap-4 p-4 border border-slate-200 rounded-xl">
-                        <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">2</span>
-                        <div><p class="font-semibold text-slate-800 text-sm mb-1">Профилирование PL/SQL</p><p class="text-xs text-slate-600">Увидеть, какая именно функция внутри пакета занимает 90% времени.</p></div>
+                    <div class="flex gap-4 p-4 border rounded-xl">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0">2</span>
+                        <div><p class="font-semibold text-sm mb-1">Профилирование PL/SQL</p><p class="text-xs">Увидеть, какая именно функция внутри пакета занимает 90% времени.</p></div>
                     </div>
-                    <div class="flex gap-4 p-4 border border-slate-200 rounded-xl">
-                        <span class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600 font-bold text-sm shrink-0">!</span>
-                        <div><p class="font-semibold text-slate-800 text-sm mb-1">Диагностика ORA-00060 (Deadlock)</p><p class="text-xs text-slate-600">Oracle автоматически рисует граф взаимных блокировок в трейс-файле.</p></div>
+                    <div class="flex gap-4 p-4 border rounded-xl">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0">!</span>
+                        <div><p class="font-semibold text-sm mb-1">Диагностика ORA-00060 (Deadlock)</p><p class="text-xs">Oracle автоматически рисует граф взаимных блокировок в трейс-файле.</p></div>
                     </div>
                 </div>
             </section>
 
             <!-- Section 9 -->
             <section id="sources" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">9. Официальные источники</h2>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">9. Официальные источники</h2>
                 <div class="space-y-3">
                     <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/tgdba/index.html" target="_blank"
-                       class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:border-red-400 hover:bg-red-50/30 transition-all group">
-                        <span class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                       class="flex items-center gap-3 p-4 border rounded-xl hover: hover:/30 transition-all group">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center group-hover: group-hover: transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         </span>
-                        <div><p class="font-semibold text-slate-800 text-sm">Oracle Performance Tuning Guide</p><p class="text-xs text-slate-500">Библия тюнинга производительности Oracle</p></div>
+                        <div><p class="font-semibold text-sm">Oracle Performance Tuning Guide</p><p class="text-xs">Библия тюнинга производительности Oracle</p></div>
                     </a>
                     <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_MONITOR.html" target="_blank"
-                       class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:border-red-400 hover:bg-red-50/30 transition-all group">
-                        <span class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                       class="flex items-center gap-3 p-4 border rounded-xl hover: hover:/30 transition-all group">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center group-hover: group-hover: transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         </span>
-                        <div><p class="font-semibold text-slate-800 text-sm">DBMS_MONITOR Package</p><p class="text-xs text-slate-500">Документация по управлению трейсами</p></div>
+                        <div><p class="font-semibold text-sm">DBMS_MONITOR Package</p><p class="text-xs">Документация по управлению трейсами</p></div>
                     </a>
                 </div>
             </section>
 
-            <footer class="mt-24 pt-12 border-t border-slate-100 flex items-center justify-between">
+            <footer class="mt-24 pt-12 border-t flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center font-bold text-white">D</div>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold">D</div>
                     <div>
-                        <p class="font-bold text-slate-900 text-sm">DRE Lab Knowledge Base</p>
-                        <p class="text-xs text-slate-400">© 2024 · Oracle Mastery</p>
+                        <p class="font-bold text-sm">DRE Lab Knowledge Base</p>
+                        <p class="text-xs">© 2024 · Oracle Mastery</p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs text-slate-400 font-medium italic">"Data is the new oil, Reliability is the pipe."</p>
+                    <p class="text-xs font-medium italic">"Data is the new oil, Reliability is the pipe."</p>
                 </div>
             </footer>
 

@@ -6,112 +6,89 @@
     <title>DRE PostgreSQL Lab - Справочник Теории</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #f8fafc;
-            --card-bg: #ffffff;
-            --accent: #2563eb;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --code-bg: #f1f5f9;
-        }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-primary); color: var(--text-main); line-height: 1.6; }
-        article { font-family: 'Lora', serif; max-width: 56rem; margin: 0 auto; }
-        h1, h2, h3, h4, .font-sans { font-family: 'Inter', sans-serif; }
-        code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9em; color: #e11d48; }
-        pre code { display: block; padding: 1rem; overflow-x: auto; color: var(--text-main); }
-        .kbd { background: #eee; border: 1px solid #ccc; padding: 1px 4px; border-radius: 3px; font-size: 0.8em; }
-        .section-anchor { scroll-margin-top: 2rem; }
-        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
-        th { text-align: left; background: var(--bg-primary); padding: 0.75rem; border-bottom: 2px solid var(--border); color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
-        td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-        .cmd-col { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 500; width: 30%; }
-        
-        .sidebar { position: sticky; top: 2rem; height: fit-content; }
-        @media (max-width: 1024px) { .sidebar { display: none; } }
-    </style>
+        <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
 </head>
-<body class="min-h-screen p-4 md:p-12">
+<body class="min-h-screen p-4 md:p-12 ref-page">
 
     <div class="flex flex-col lg:flex-row gap-12 max-w-7xl mx-auto">
         
         <!-- Sidebar Navigation -->
         <aside class="sidebar w-64 shrink-0">
             <nav class="space-y-1">
-                <a href="index.html" class="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-bold text-sm mb-8 transition-colors">
+                <a href="index.html" class="flex items-center gap-2 hover: font-bold text-sm mb-8 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     На главную
                 </a>
-                <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-4">Содержание</p>
-                <a href="#fs" class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">1. Файловая система</a>
-                <a href="#nav" class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">2. Базовые команды</a>
-                <a href="#text" class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">3. Текстовые утилиты</a>
-                <a href="#pgsql" class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">4. Инструменты PostgreSQL</a>
-                <a href="#sys" class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">5. Системный мониторинг</a>
-                <a href="#pipes" class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">6. Конвейеры (Pipes)</a>
+                <p class="text-[10px] uppercase tracking-widest font-bold mb-4">Содержание</p>
+                <a href="#fs" class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">1. Файловая система</a>
+                <a href="#nav" class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">2. Базовые команды</a>
+                <a href="#text" class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">3. Текстовые утилиты</a>
+                <a href="#pgsql" class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">4. Инструменты PostgreSQL</a>
+                <a href="#sys" class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">5. Системный мониторинг</a>
+                <a href="#pipes" class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">6. Конвейеры (Pipes)</a>
             </nav>
-            <div class="mt-12 p-4 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200">
+            <div class="mt-12 p-4 rounded-2xl shadow-lg">
                 <p class="text-xs font-bold uppercase tracking-tighter opacity-80 mb-2">Статус Лабы</p>
                 <p class="text-sm leading-snug">Симулятор поддерживает более 25 команд для полной имитации работы DRE.</p>
-                <a href="lab.html" class="inline-block mt-4 text-xs bg-white text-blue-600 font-bold py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors">Перейти к практике →</a>
+                <a href="lab.html" class="inline-block mt-4 text-xs font-bold py-2 px-4 rounded-lg hover: transition-colors">Перейти к практике →</a>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <article class="flex-1 bg-white p-8 md:p-16 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        <article class="flex-1 p-8 md:p-16 rounded-3xl shadow-xl border">
             
-            <header class="mb-12 border-b border-slate-100 pb-12 text-center md:text-left">
-                <span class="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-6">DRE Engineering Handbook</span>
-                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight leading-none">
+            <header class="mb-12 border-b pb-12 text-center md:text-left">
+                <span class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full mb-6">DRE Engineering Handbook</span>
+                <h1 class="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight leading-none">
                     Справочник по лабораторному окружению
                 </h1>
-                <p class="text-xl text-slate-500 max-w-2xl leading-relaxed">
+                <p class="text-xl max-w-2xl leading-relaxed">
                     Полное руководство по командам, инструментам и структуре данных, доступным в рамках симулятора DRE Lab.
                 </p>
             </header>
 
             <section id="intro" class="mb-16">
-                <p class="mb-6 text-slate-700 text-lg leading-relaxed">
+                <p class="mb-6 text-lg leading-relaxed">
                     В этой лаборатории вы работаете в эмуляторе терминала Linux, настроенном для обслуживания кластера PostgreSQL 15. Все команды, описанные ниже, ведут себя максимально приближенно к реальной системе Ubuntu/Debian.
                 </p>
-                <div class="bg-amber-50 border-l-4 border-amber-400 p-6 rounded-r-2xl">
-                    <h4 class="font-bold text-amber-900 mb-1 flex items-center gap-2">
+                <div class="border-l-4 p-6 rounded-r-2xl">
+                    <h4 class="font-bold mb-1 flex items-center gap-2">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
                         Совет для новичков
                     </h4>
-                    <p class="text-amber-800 text-sm">Используйте <kbd>Ctrl</kbd>+<kbd>L</kbd> или команду <code>clear</code> для очистки экрана терминала, если вывод стал слишком громоздким.</p>
+                    <p class="text-sm">Используйте <kbd>Ctrl</kbd>+<kbd>L</kbd> или команду <code>clear</code> для очистки экрана терминала, если вывод стал слишком громоздким.</p>
                 </div>
             </section>
 
             <!-- Section 1 -->
             <section id="fs" class="section-anchor mb-20">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">1. Структура файловой системы</h2>
-                <p class="mb-6 text-slate-700">В симуляторе воссоздан стандартный Layout PostgreSQL для Debian/Ubuntu:</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">1. Структура файловой системы</h2>
+                <p class="mb-6">В симуляторе воссоздан стандартный Layout PostgreSQL для Debian/Ubuntu:</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-5 border border-slate-200 rounded-2xl bg-slate-50">
-                        <p class="font-mono text-sm text-blue-600 font-bold mb-2">/etc/postgresql/15/main/</p>
-                        <p class="text-sm text-slate-600">Конфигурационные файлы: <code>postgresql.conf</code> (главный конфиг), <code>pg_hba.conf</code> (доступ), <code>pg_ident.conf</code>.</p>
+                    <div class="p-5 border rounded-2xl">
+                        <p class="font-mono text-sm font-bold mb-2">/etc/postgresql/15/main/</p>
+                        <p class="text-sm">Конфигурационные файлы: <code>postgresql.conf</code> (главный конфиг), <code>pg_hba.conf</code> (доступ), <code>pg_ident.conf</code>.</p>
                     </div>
-                    <div class="p-5 border border-slate-200 rounded-2xl bg-slate-50">
-                        <p class="font-mono text-sm text-blue-600 font-bold mb-2">/var/lib/postgresql/15/main/</p>
-                        <p class="text-sm text-slate-600">Директория данных (PGDATA). Содержит файлы таблиц, индексов и журналы транзакций (WAL).</p>
+                    <div class="p-5 border rounded-2xl">
+                        <p class="font-mono text-sm font-bold mb-2">/var/lib/postgresql/15/main/</p>
+                        <p class="text-sm">Директория данных (PGDATA). Содержит файлы таблиц, индексов и журналы транзакций (WAL).</p>
                     </div>
-                    <div class="p-5 border border-slate-200 rounded-2xl bg-slate-50">
-                        <p class="font-mono text-sm text-blue-600 font-bold mb-2">/var/log/postgresql/</p>
-                        <p class="text-sm text-slate-600">Серверные логи. Основной файл — <code>postgresql.log</code>. Здесь фиксируются ошибки и события.</p>
+                    <div class="p-5 border rounded-2xl">
+                        <p class="font-mono text-sm font-bold mb-2">/var/log/postgresql/</p>
+                        <p class="text-sm">Серверные логи. Основной файл — <code>postgresql.log</code>. Здесь фиксируются ошибки и события.</p>
                     </div>
-                    <div class="p-5 border border-slate-200 rounded-2xl bg-slate-50">
-                        <p class="font-mono text-sm text-blue-600 font-bold mb-2">/run/postgresql/</p>
-                        <p class="text-sm text-slate-600">Рантайм-файлы: Unix-сокеты (<code>.s.PGSQL.5432</code>) и PID-файл сервера.</p>
+                    <div class="p-5 border rounded-2xl">
+                        <p class="font-mono text-sm font-bold mb-2">/run/postgresql/</p>
+                        <p class="text-sm">Рантайм-файлы: Unix-сокеты (<code>.s.PGSQL.5432</code>) и PID-файл сервера.</p>
                     </div>
                 </div>
             </section>
 
             <!-- Section 2 -->
             <section id="nav" class="section-anchor mb-20">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">2. Базовая навигация и просмотр</h2>
-                <p class="mb-6 text-slate-700">Используйте эти команды для перемещения по системе и инспекции файлов:</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">2. Базовая навигация и просмотр</h2>
+                <p class="mb-6">Используйте эти команды для перемещения по системе и инспекции файлов:</p>
                 <table>
                     <thead><tr><th>Команда</th><th>Описание</th><th>Пример</th></tr></thead>
                     <tbody>
@@ -129,59 +106,59 @@
 
             <!-- Section 3 -->
             <section id="text" class="section-anchor mb-20">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">3. Продвинутая работа с текстом</h2>
-                <p class="mb-6 text-slate-700">Инструменты для фильтрации и обработки данных без открытия тяжелых файлов (напр. логов в десятки ГБ):</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">3. Продвинутая работа с текстом</h2>
+                <p class="mb-6">Инструменты для фильтрации и обработки данных без открытия тяжелых файлов (напр. логов в десятки ГБ):</p>
                 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Grep — поиск по шаблону</h3>
-                <p class="text-sm text-slate-600 mb-4">Поддерживает флаги: <code>-i</code> (регистр), <code>-n</code> (номер строки), <code>-v</code> (инверсия), <code>-c</code> (счет), <code>-r</code> (рекурсия).</p>
-                <pre class="bg-slate-900 text-slate-100 rounded-xl mb-8"><code># Найти все ошибки в логе
+                <h3 class="text-lg font-bold mt-8 mb-4">Grep — поиск по шаблону</h3>
+                <p class="text-sm mb-4">Поддерживает флаги: <code>-i</code> (регистр), <code>-n</code> (номер строки), <code>-v</code> (инверсия), <code>-c</code> (счет), <code>-r</code> (рекурсия).</p>
+                <pre class="rounded-xl mb-8"><code># Найти все ошибки в логе
 grep "ERROR" /var/log/postgresql/postgresql.log
 
 # Найти параметр shared_buffers в конфиге
 grep -n "shared_buffers" /etc/postgresql/15/main/postgresql.conf</code></pre>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Sed и Awk — потоковые редакторы</h3>
-                <p class="text-sm text-slate-600 mb-4"><code>sed</code> удобен для вырезания диапазонов строк, <code>awk</code> — для работы с колонками.</p>
+                <h3 class="text-lg font-bold mt-8 mb-4">Sed и Awk — потоковые редакторы</h3>
+                <p class="text-sm mb-4"><code>sed</code> удобен для вырезания диапазонов строк, <code>awk</code> — для работы с колонками.</p>
                 <div class="space-y-4">
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                        <code class="text-blue-700">sed -n '10,20p' config.conf</code>
-                        <p class="text-xs text-slate-500 mt-2">Выведет только строки с 10 по 20.</p>
+                    <div class="p-4 border rounded-xl">
+                        <code>sed -n '10,20p' config.conf</code>
+                        <p class="text-xs mt-2">Выведет только строки с 10 по 20.</p>
                     </div>
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                        <code class="text-blue-700">awk -F= '/port/{print $2}' config.conf</code>
-                        <p class="text-xs text-slate-500 mt-2">Выведет значение порта (то, что после знака <code>=</code>).</p>
+                    <div class="p-4 border rounded-xl">
+                        <code>awk -F= '/port/{print $2}' config.conf</code>
+                        <p class="text-xs mt-2">Выведет значение порта (то, что после знака <code>=</code>).</p>
                     </div>
                 </div>
             </section>
 
             <!-- Section 4 -->
             <section id="pgsql" class="section-anchor mb-20">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">4. Инструменты PostgreSQL</h2>
-                <p class="mb-6 text-slate-700">Управление базой данных осуществляется через бинарные файлы и SQL-команды:</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">4. Инструменты PostgreSQL</h2>
+                <p class="mb-6">Управление базой данных осуществляется через бинарные файлы и SQL-команды:</p>
                 
-                <h4 class="font-bold text-slate-800 mb-3">Командная строка (Shell)</h4>
-                <ul class="list-disc pl-5 mb-8 space-y-2 text-sm text-slate-600">
+                <h4 class="font-bold mb-3">Командная строка (Shell)</h4>
+                <ul class="list-disc pl-5 mb-8 space-y-2 text-sm">
                     <li><code>psql</code> — запуск интерактивного терминала БД.</li>
                     <li><code>psql --version</code> — проверка версии клиента.</li>
                     <li><code>pg_config --version</code> — информация о сборке сервера.</li>
                 </ul>
 
-                <h4 class="font-bold text-slate-800 mb-3">Внутри PSQL (SQL)</h4>
-                <p class="text-sm text-slate-600 mb-4">Узнать пути к файлам можно прямо из SQL-сессии:</p>
-                <table class="bg-blue-50/30">
+                <h4 class="font-bold mb-3">Внутри PSQL (SQL)</h4>
+                <p class="text-sm mb-4">Узнать пути к файлам можно прямо из SQL-сессии:</p>
+                <table>
                     <thead><tr><th>Запрос</th><th>Результат</th></tr></thead>
                     <tbody>
-                        <tr><td class="font-mono font-bold text-blue-700">SHOW config_file;</td><td>Путь к postgresql.conf</td></tr>
-                        <tr><td class="font-mono font-bold text-blue-700">SHOW data_directory;</td><td>Путь к PGDATA</td></tr>
-                        <tr><td class="font-mono font-bold text-blue-700">SELECT name, setting FROM pg_settings;</td><td>Все настройки системы</td></tr>
+                        <tr><td class="font-mono font-bold">SHOW config_file;</td><td>Путь к postgresql.conf</td></tr>
+                        <tr><td class="font-mono font-bold">SHOW data_directory;</td><td>Путь к PGDATA</td></tr>
+                        <tr><td class="font-mono font-bold">SELECT name, setting FROM pg_settings;</td><td>Все настройки системы</td></tr>
                     </tbody>
                 </table>
             </section>
 
             <!-- Section 5 -->
             <section id="sys" class="section-anchor mb-20">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">5. Системный мониторинг и диагностика</h2>
-                <p class="mb-6 text-slate-700">DRE-инженер должен уметь быстро локализовать проблему на уровне ОС:</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">5. Системный мониторинг и диагностика</h2>
+                <p class="mb-6">DRE-инженер должен уметь быстро локализовать проблему на уровне ОС:</p>
                 
                 <table class="text-sm mb-12">
                     <thead><tr><th>Инструмент</th><th>Назначение</th><th>Ключевые ключи</th></tr></thead>
@@ -194,47 +171,47 @@ grep -n "shared_buffers" /etc/postgresql/15/main/postgresql.conf</code></pre>
                     </tbody>
                 </table>
 
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Systemd и Логи ОС</h3>
-                <p class="text-slate-600 mb-4">Если сервис упал, используйте <code>systemctl</code> для проверки статуса и <code>journalctl</code> для системного лога (journald).</p>
-                <pre class="bg-slate-900 text-slate-100 rounded-xl"><code>systemctl status postgresql
+                <h3 class="text-lg font-bold mb-4">Systemd и Логи ОС</h3>
+                <p class="mb-4">Если сервис упал, используйте <code>systemctl</code> для проверки статуса и <code>journalctl</code> для системного лога (journald).</p>
+                <pre class="rounded-xl"><code>systemctl status postgresql
 journalctl -u postgresql --since "30 minutes ago"</code></pre>
             </section>
 
             <!-- Section 6 -->
             <section id="pipes" class="section-anchor mb-20">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">6. Магия Конвейеров (Pipes)</h2>
-                <p class="mb-6 text-slate-700 leading-relaxed text-lg">
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">6. Магия Конвейеров (Pipes)</h2>
+                <p class="mb-6 leading-relaxed text-lg">
                     Самая мощная черта Linux — возможность передавать вывод одной программы на вход другой с помощью символа <code>|</code>.
                 </p>
                 <div class="space-y-6">
-                    <div class="border-2 border-dashed border-slate-200 p-6 rounded-2xl">
-                        <p class="font-bold text-slate-800 mb-3">Пример 1: Подсчет количества процессов</p>
-                        <code class="text-blue-700">ps aux | grep postgres | wc -l</code>
-                        <p class="text-xs text-slate-500 mt-2">Выведет общее число всех процессов, связанных с PostgreSQL.</p>
+                    <div class="border-2 border-dashed p-6 rounded-2xl">
+                        <p class="font-bold mb-3">Пример 1: Подсчет количества процессов</p>
+                        <code>ps aux | grep postgres | wc -l</code>
+                        <p class="text-xs mt-2">Выведет общее число всех процессов, связанных с PostgreSQL.</p>
                     </div>
-                    <div class="border-2 border-dashed border-slate-200 p-6 rounded-2xl">
-                        <p class="font-bold text-slate-800 mb-3">Пример 2: Топ-10 самых больших файлов в PGDATA</p>
-                        <code class="text-blue-700">du -h /var/lib/postgresql | sort -rh | head -n 10</code>
-                        <p class="text-xs text-slate-500 mt-2">Быстро покажет самые тяжелые таблицы или WAL-логи.</p>
+                    <div class="border-2 border-dashed p-6 rounded-2xl">
+                        <p class="font-bold mb-3">Пример 2: Топ-10 самых больших файлов в PGDATA</p>
+                        <code>du -h /var/lib/postgresql | sort -rh | head -n 10</code>
+                        <p class="text-xs mt-2">Быстро покажет самые тяжелые таблицы или WAL-логи.</p>
                     </div>
-                    <div class="border-2 border-dashed border-slate-200 p-6 rounded-2xl">
-                        <p class="font-bold text-slate-800 mb-3">Пример 3: Поиск конкретной ошибки и ее последних вхождений</p>
-                        <code class="text-blue-700">grep "No space left" pg.log | tail -n 5</code>
-                        <p class="text-xs text-slate-500 mt-2">Фильтрует сообщения о нехватке места и показывает 5 последних эпизодов.</p>
+                    <div class="border-2 border-dashed p-6 rounded-2xl">
+                        <p class="font-bold mb-3">Пример 3: Поиск конкретной ошибки и ее последних вхождений</p>
+                        <code>grep "No space left" pg.log | tail -n 5</code>
+                        <p class="text-xs mt-2">Фильтрует сообщения о нехватке места и показывает 5 последних эпизодов.</p>
                     </div>
                 </div>
             </section>
 
-            <footer class="mt-24 pt-12 border-t border-slate-100 flex items-center justify-between">
+            <footer class="mt-24 pt-12 border-t flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center font-bold text-white">D</div>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold">D</div>
                     <div>
-                        <p class="font-bold text-slate-900 text-sm">DRE Lab Knowledge Base</p>
-                        <p class="text-xs text-slate-400">© 2024 · PostgreSQL Mastery</p>
+                        <p class="font-bold text-sm">DRE Lab Knowledge Base</p>
+                        <p class="text-xs">© 2024 · PostgreSQL Mastery</p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs text-slate-400 font-medium italic">"Data is the new oil, Reliability is the pipe."</p>
+                    <p class="text-xs font-medium italic">"Data is the new oil, Reliability is the pipe."</p>
                 </div>
             </footer>
 

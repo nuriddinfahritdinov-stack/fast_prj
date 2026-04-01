@@ -467,13 +467,4 @@ const CURRICULUM = {
     ]
 };
 
-// =============================================================================
-//  THEMES
-// =============================================================================
-const THEMES = [
-    { id: 'default',   name: 'Classic Light',  cls: '' },
-    { id: 'dracula',   name: 'Dracula',         cls: 'theme-dracula' },
-    { id: 'cyberpunk', name: 'Cyberpunk',       cls: 'theme-cyberpunk' },
-    { id: 'academic',  name: 'Light Academic',  cls: 'theme-academic' },
-    { id: 'contrast',  name: 'High Contrast',   cls: 'theme-contrast' }
-];
+// THEMES moved to theme.js

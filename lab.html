@@ -14,43 +14,27 @@
     <script src="https://unpkg.com/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600;700&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 
-    <!-- Curriculum + Themes data -->
+    <!-- Shared Theme Engine -->
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
+
+    <!-- Curriculum data -->
     <script src="data.js"></script>
 
     <style>
-        :root {
-            --bg-primary: #ffffff; --bg-secondary: #f8fafc;
-            --text-primary: #1e293b; --text-secondary: #64748b;
-            --accent: #2563eb; --border: #e2e8f0;
-            --term-bg: #000; --font-main: 'Inter',sans-serif; --font-theory: 'Inter',sans-serif;
-        }
-        .theme-dracula   { --bg-primary:#282a36; --bg-secondary:#1e1f29; --text-primary:#f8f8f2; --text-secondary:#6272a4; --accent:#bd93f9; --border:#44475a; --term-bg:#1e1f29; }
-        .theme-cyberpunk { --bg-primary:#050505; --bg-secondary:#0a0a0a; --text-primary:#00ff41; --text-secondary:#ff0055; --accent:#00d4ff; --border:#00ff41; --term-bg:#000; }
-        .theme-academic  { --bg-primary:#fdfaf6; --bg-secondary:#f4f1ea; --text-primary:#2c2c2c; --text-secondary:#5f5f5f; --accent:#8b4513; --border:#d7d3c8; --term-bg:#1a1a1a; --font-theory:'Lora',serif; }
-        .theme-contrast  { --bg-primary:#000; --bg-secondary:#000; --text-primary:#fff; --text-secondary:#ff0; --accent:#ff0; --border:#fff; --term-bg:#000; }
-
-        body { background-color:var(--bg-primary); color:var(--text-primary); font-family:var(--font-main); transition:background-color .3s,color .3s; }
-        .theory-content { font-family:var(--font-theory); }
-        .mono { font-family:'JetBrains Mono',monospace; }
-        .border-custom   { border-color:var(--border); }
-        .bg-custom-sec   { background-color:var(--bg-secondary); }
-        .text-custom-sec { color:var(--text-secondary); }
-        .accent-color    { color:var(--accent); }
-        .accent-bg       { background-color:var(--accent); }
-
         .xterm-viewport::-webkit-scrollbar { width:8px; }
         .xterm-viewport::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 
-        /* Prose styles */
+        /* Prose styles overriding */
         .prose h1  { font-size:1.35rem; font-weight:700; margin-bottom:.7rem; color:var(--accent); }
         .prose h2  { font-size:1.05rem; font-weight:600; margin-top:1.2rem; margin-bottom:.4rem; border-bottom:1px solid var(--border); padding-bottom:.2rem; }
         .prose p   { margin-bottom:.8rem; line-height:1.65; }
-        .prose code { background:var(--bg-secondary); padding:.15rem .4rem; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:.85em; }
+        .prose code { background:var(--code-bg); color:var(--code-color); padding:.15rem .4rem; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:.85em; }
         .prose ul  { list-style-type:disc; padding-left:1.4rem; margin-bottom:.8rem; }
         .prose ul li { margin-bottom:.25rem; }
         .prose table { width:100%; border-collapse:collapse; margin-bottom:.8rem; font-size:.78rem; }
         .prose table th { text-align:left; padding:.3rem .5rem; opacity:.55; border-bottom:1px solid var(--border); }
-        .prose table td { padding:.25rem .5rem; vertical-align:top; }
+        .prose table td { padding:.25rem .5rem; vertical-align:top; border-bottom:1px solid var(--border); }
         .prose table td .font-mono,
         .prose table td:first-child { font-family:'JetBrains Mono',monospace; color:var(--accent); }
 
@@ -62,7 +46,7 @@
         .badge-pop { animation:pop .4s ease-out; }
     </style>
 </head>
-<body class="h-screen overflow-hidden">
+<body id="dre-no-auto-switcher" class="h-screen overflow-hidden">
 <div id="root" class="h-full"></div>
 
 <script>
@@ -503,7 +487,7 @@ function Navbar({ currentTheme, setTheme, moduleIdx, setModuleIdx }) {
                     onChange=${e => setTheme(e.target.value)}
                     class="bg-custom-sec border border-custom text-[10px] rounded px-2 py-1 outline-none cursor-pointer"
                 >
-                    ${THEMES.map(t => html`<option key=${t.id} value=${t.id}>${t.name}</option>`)}
+                    ${(window.DRETheme ? window.DRETheme.themes : []).map(t => html`<option key=${t.id} value=${t.id}>${t.name}</option>`)}
                 </select>
             </div>
         </header>
@@ -550,7 +534,7 @@ function SuccessBanner({ task, onNext, isLast }) {
 
 // ── Main App ────────────────────────────────────────────────────────────────
 function App() {
-    const [currentTheme, setCurrentTheme] = useState('dracula');
+    const [currentTheme, setCurrentTheme] = useState(window.DRETheme ? window.DRETheme.get() : 'dracula');
     const [moduleIdx,    setModuleIdx]    = useState(0);
     const [taskIdx,      setTaskIdx]      = useState(0);
     const [cwd,          setCwd]          = useState('~');
@@ -572,25 +556,40 @@ function App() {
     const module      = CURRICULUM.modules[moduleIdx];
     const currentTask = module.tasks[taskIdx];
 
-    // ── Apply theme ──────────────────────────────────────────────────────
+    const updateTerminalTheme = useCallback((id) => {
+        if (!term.current) return;
+        const colors = {
+            dracula:   { bg:'#1e1f29', fg:'#f8f8f2' },
+            cyberpunk: { bg:'#000', fg:'#00ff41' },
+            default:   { bg:'#000', fg:'#fff' },
+            academic:  { bg:'#1a1a1a', fg:'#f4f1ea' },
+            contrast:  { bg:'#000', fg:'#fff' },
+        };
+        const c = colors[id] || colors.default;
+        term.current.options.theme = { background: c.bg, foreground: c.fg };
+    }, []);
+
     const applyTheme = (id) => {
-        const found = THEMES.find(t => t.id === id);
-        document.body.className = `h-screen overflow-hidden${found.cls ? ' ' + found.cls : ''}`;
-        setCurrentTheme(id);
-        if (term.current) {
-            const colors = {
-                dracula:   { bg:'#1e1f29', fg:'#f8f8f2' },
-                cyberpunk: { bg:'#000', fg:'#00ff41' },
-                default:   { bg:'#000', fg:'#fff' },
-                academic:  { bg:'#1a1a1a', fg:'#f4f1ea' },
-                contrast:  { bg:'#000', fg:'#fff' },
-            };
-            const c = colors[id] || colors.default;
-            term.current.options.theme = { background: c.bg, foreground: c.fg };
+        if (window.DRETheme) {
+            window.DRETheme.set(id);
+        } else {
+            setCurrentTheme(id);
+            updateTerminalTheme(id);
         }
     };
 
-    useEffect(() => { applyTheme('dracula'); }, []);
+    useEffect(() => {
+        const handleThemeChange = (e) => {
+            setCurrentTheme(e.detail.theme);
+            updateTerminalTheme(e.detail.theme);
+        };
+        window.addEventListener('dre-theme-changed', handleThemeChange);
+        return () => window.removeEventListener('dre-theme-changed', handleThemeChange);
+    }, [updateTerminalTheme]);
+
+    useEffect(() => {
+        updateTerminalTheme(currentTheme);
+    }, [currentTheme, updateTerminalTheme]);
 
     // Reset task state when switching module or task
     useEffect(() => {

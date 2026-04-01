@@ -6,76 +6,54 @@
     <title>DRE Lab — PostgreSQL Справочник</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #f8fafc;
-            --card-bg: #ffffff;
-            --accent: #2563eb;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --code-bg: #f1f5f9;
-        }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-primary); color: var(--text-main); line-height: 1.6; }
-        article { font-family: 'Lora', serif; max-width: 56rem; margin: 0 auto; }
-        h1, h2, h3, h4, .font-sans { font-family: 'Inter', sans-serif; }
-        code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9em; color: #e11d48; }
-        pre { background: #0f172a; color: #e2e8f0; border-radius: 0.75rem; padding: 1.25rem; overflow-x: auto; margin: 1rem 0; }
-        pre code { background: transparent; color: inherit; padding: 0; font-size: 0.875rem; }
-        .section-anchor { scroll-margin-top: 2rem; }
-        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
-        th { text-align: left; background: var(--bg-primary); padding: 0.75rem; border-bottom: 2px solid var(--border); color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
-        td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-        .cmd-col { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 500; width: 35%; }
-        .sidebar { position: sticky; top: 2rem; height: fit-content; }
-        @media (max-width: 1024px) { .sidebar { display: none; } }
-    </style>
+        <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
 </head>
-<body class="min-h-screen p-4 md:p-12">
+<body class="min-h-screen p-4 md:p-12 ref-page">
 
     <div class="flex flex-col lg:flex-row gap-12 max-w-7xl mx-auto">
 
         <!-- Sidebar -->
         <aside class="sidebar w-64 shrink-0">
             <nav class="space-y-1">
-                <a href="index.html" class="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-bold text-sm mb-8 transition-colors">
+                <a href="index.html" class="flex items-center gap-2 hover: font-bold text-sm mb-8 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     На главную
                 </a>
-                <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-4">Содержание</p>
-                <a href="#env"     class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">1. Deployment &amp; Env</a>
-                <a href="#cli"     class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">2. CLI Reference</a>
-                <a href="#admin"   class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">3. Admin Ops</a>
-                <a href="#sources" class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">4. Official Sources</a>
+                <p class="text-[10px] uppercase tracking-widest font-bold mb-4">Содержание</p>
+                <a href="#env"     class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">1. Deployment &amp; Env</a>
+                <a href="#cli"     class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">2. CLI Reference</a>
+                <a href="#admin"   class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">3. Admin Ops</a>
+                <a href="#sources" class="block py-2 px-3 text-sm rounded-lg hover: hover:shadow-sm transition-all">4. Official Sources</a>
             </nav>
-            <div class="mt-12 p-4 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200">
+            <div class="mt-12 p-4 rounded-2xl shadow-lg">
                 <p class="text-xs font-bold uppercase tracking-tighter opacity-80 mb-2">Модуль 02</p>
                 <p class="text-sm leading-snug">PostgreSQL 14, 15 и 16. Основная утилита — psql и pg_dump/pg_restore.</p>
-                <a href="lab.html" class="inline-block mt-4 text-xs bg-white text-blue-600 font-bold py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors">Перейти к практике →</a>
+                <a href="lab.html" class="inline-block mt-4 text-xs font-bold py-2 px-4 rounded-lg hover: transition-colors">Перейти к практике →</a>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <article class="flex-1 bg-white p-8 md:p-16 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+        <article class="flex-1 p-8 md:p-16 rounded-3xl shadow-xl border">
 
-            <header class="mb-12 border-b border-slate-100 pb-12 text-center md:text-left">
-                <span class="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-6">DRE Engineering Handbook · Модуль 02</span>
-                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight leading-none">
+            <header class="mb-12 border-b pb-12 text-center md:text-left">
+                <span class="inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full mb-6">DRE Engineering Handbook · Модуль 02</span>
+                <h1 class="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight leading-none">
                     PostgreSQL: Справочник по работе с консолью
                 </h1>
-                <p class="text-xl text-slate-500 max-w-2xl leading-relaxed">
+                <p class="text-xl max-w-2xl leading-relaxed">
                     Полное руководство по psql, переменным окружения и однострочникам для DBA-автоматизации.
                 </p>
             </header>
 
             <!-- Section 1 -->
             <section id="env" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">1. Deployment &amp; Environment</h2>
-                <p class="mb-6 text-slate-700">
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">1. Deployment &amp; Environment</h2>
+                <p class="mb-6">
                     Прежде чем выполнять запросы, нужно настроить окружение, чтобы psql знал, куда «стучаться».
                 </p>
 
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Переменные окружения («The Big Three»)</h3>
+                <h3 class="text-lg font-bold mb-4">Переменные окружения («The Big Three»)</h3>
                 <table>
                     <thead><tr><th>Переменная</th><th>Значение</th></tr></thead>
                     <tbody>
@@ -86,39 +64,39 @@
                     </tbody>
                 </table>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Основные конфиги</h3>
+                <h3 class="text-lg font-bold mt-8 mb-4">Основные конфиги</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="font-mono text-sm text-blue-600 font-bold mb-2">postgresql.conf</p>
-                        <p class="text-xs text-slate-600">Главные настройки: память, логи, порты.</p>
+                    <div class="p-4 border rounded-xl">
+                        <p class="font-mono text-sm font-bold mb-2">postgresql.conf</p>
+                        <p class="text-xs">Главные настройки: память, логи, порты.</p>
                     </div>
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="font-mono text-sm text-blue-600 font-bold mb-2">pg_hba.conf</p>
-                        <p class="text-xs text-slate-600">Контроль доступа: кто и с каких IP может зайти.</p>
+                    <div class="p-4 border rounded-xl">
+                        <p class="font-mono text-sm font-bold mb-2">pg_hba.conf</p>
+                        <p class="text-xs">Контроль доступа: кто и с каких IP может зайти.</p>
                     </div>
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                        <p class="font-mono text-sm text-blue-600 font-bold mb-2">postgresql.auto.conf</p>
-                        <p class="text-xs text-slate-600">Настройки, измененные через ALTER SYSTEM.</p>
+                    <div class="p-4 border rounded-xl">
+                        <p class="font-mono text-sm font-bold mb-2">postgresql.auto.conf</p>
+                        <p class="text-xs">Настройки, измененные через ALTER SYSTEM.</p>
                     </div>
                 </div>
             </section>
 
             <!-- Section 2 -->
             <section id="cli" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">2. CLI Reference (Bash-to-DB Focus)</h2>
-                <p class="mb-6 text-slate-700">
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">2. CLI Reference (Bash-to-DB Focus)</h2>
+                <p class="mb-6">
                     Самая важная часть для автоматизатора — запуск команд без входа в интерактивный режим.
                 </p>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-6 mb-4">Inline-запросы (флаг <code>-c</code>)</h3>
+                <h3 class="text-lg font-bold mt-6 mb-4">Inline-запросы (флаг <code>-c</code>)</h3>
                 <pre><code># Проверка версии и аптайма
 psql -c "SELECT version(), now() - pg_postmaster_start_time() AS uptime;"</code></pre>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Выполнение скриптов из файлов (флаг <code>-f</code>)</h3>
+                <h3 class="text-lg font-bold mt-8 mb-4">Выполнение скриптов из файлов (флаг <code>-f</code>)</h3>
                 <pre><code># Накатываем миграцию или скрипт обслуживания
 psql -f /path/to/update_schema.sql -d production_db</code></pre>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Флаги «чистого» вывода (для конвейеров)</h3>
+                <h3 class="text-lg font-bold mt-8 mb-4">Флаги «чистого» вывода (для конвейеров)</h3>
                 <table>
                     <thead><tr><th>Флаг</th><th>Назначение</th></tr></thead>
                     <tbody>
@@ -128,23 +106,23 @@ psql -f /path/to/update_schema.sql -d production_db</code></pre>
                     </tbody>
                 </table>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Пример «Чистого» извлечения</h3>
+                <h3 class="text-lg font-bold mt-8 mb-4">Пример «Чистого» извлечения</h3>
                 <pre><code># Получаем только список имен баз данных
 DB_LIST=$(psql -t -A -c "SELECT datname FROM pg_database WHERE datistemplate = false;")</code></pre>
             </section>
 
             <!-- Section 3 -->
             <section id="admin" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">3. Admin Ops: Однострочники для DBA</h2>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">3. Admin Ops: Однострочники для DBA</h2>
 
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Управление процессами</h3>
+                <h3 class="text-lg font-bold mb-4">Управление процессами</h3>
                 <pre><code># Показать топ-5 самых долгих запросов
 psql -c "SELECT now() - query_start AS duration, query FROM pg_stat_activity WHERE state != 'idle' ORDER BY 1 DESC LIMIT 5;"
 
 # Убить «зависшее» соединение по PID
 psql -c "SELECT pg_terminate_backend(12345);"</code></pre>
 
-                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Здоровье и размер (Healthcheck)</h3>
+                <h3 class="text-lg font-bold mt-8 mb-4">Здоровье и размер (Healthcheck)</h3>
                 <pre><code># Узнать размер конкретной базы данных
 psql -t -c "SELECT pg_size_pretty(pg_database_size('my_db'));"
 
@@ -154,43 +132,43 @@ psql -c "SELECT pg_is_in_recovery();"</code></pre>
 
             <!-- Section 4 -->
             <section id="sources" class="section-anchor mb-16">
-                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">4. Official Sources (Must Read)</h2>
-                <p class="mb-6 text-slate-700">PostgreSQL имеет одну из лучших документаций в мире IT — используй только первоисточники.</p>
+                <h2 class="text-2xl font-bold mb-8 border-b-2 pb-2">4. Official Sources (Must Read)</h2>
+                <p class="mb-6">PostgreSQL имеет одну из лучших документаций в мире IT — используй только первоисточники.</p>
                 <div class="space-y-3">
                     <a href="https://www.postgresql.org/docs/current/app-psql.html" target="_blank"
-                       class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
-                        <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                       class="flex items-center gap-3 p-4 border rounded-xl hover: hover: transition-all group">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center group-hover: group-hover: transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         </span>
-                        <div><p class="font-semibold text-slate-800 text-sm">psql Documentation</p><p class="text-xs text-slate-500">Полный список флагов, включая -v для переменных</p></div>
+                        <div><p class="font-semibold text-sm">psql Documentation</p><p class="text-xs">Полный список флагов, включая -v для переменных</p></div>
                     </a>
                     <a href="https://www.postgresql.org/docs/current/runtime-config.html" target="_blank"
-                       class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
-                        <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                       class="flex items-center gap-3 p-4 border rounded-xl hover: hover: transition-all group">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center group-hover: group-hover: transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         </span>
-                        <div><p class="font-semibold text-slate-800 text-sm">Server Configuration</p><p class="text-xs text-slate-500">Всё о postgresql.conf</p></div>
+                        <div><p class="font-semibold text-sm">Server Configuration</p><p class="text-xs">Всё о postgresql.conf</p></div>
                     </a>
                     <a href="https://www.postgresql.org/docs/current/backup.html" target="_blank"
-                       class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
-                        <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                       class="flex items-center gap-3 p-4 border rounded-xl hover: hover: transition-all group">
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center group-hover: group-hover: transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                         </span>
-                        <div><p class="font-semibold text-slate-800 text-sm">Backup and Restore (pg_dump)</p><p class="text-xs text-slate-500">Логические бэкапы баз данных</p></div>
+                        <div><p class="font-semibold text-sm">Backup and Restore (pg_dump)</p><p class="text-xs">Логические бэкапы баз данных</p></div>
                     </a>
                 </div>
             </section>
 
-            <footer class="mt-24 pt-12 border-t border-slate-100 flex items-center justify-between">
+            <footer class="mt-24 pt-12 border-t flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center font-bold text-white">D</div>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold">D</div>
                     <div>
-                        <p class="font-bold text-slate-900 text-sm">DRE Lab Knowledge Base</p>
-                        <p class="text-xs text-slate-400">© 2024 · PostgreSQL Mastery</p>
+                        <p class="font-bold text-sm">DRE Lab Knowledge Base</p>
+                        <p class="text-xs">© 2024 · PostgreSQL Mastery</p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs text-slate-400 font-medium italic">"Data is the new oil, Reliability is the pipe."</p>
+                    <p class="text-xs font-medium italic">"Data is the new oil, Reliability is the pipe."</p>
                 </div>
             </footer>
 

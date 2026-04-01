@@ -6,17 +6,18 @@
     <title>DRE Lab - Welcome</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; }
         .card { transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s; }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(59,130,246,0.2); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px color-mix(in srgb, var(--accent) 20%, transparent); }
 
         /* Custom styled select */
         .db-select-wrapper {
             display: inline-flex;
             align-items: center;
-            background: rgba(59,130,246,0.15);
-            border: 2px solid rgba(59,130,246,0.5);
+            background: color-mix(in srgb, var(--accent) 15%, transparent);
+            border: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
             border-radius: 12px;
             padding: 4px 10px 4px 14px;
             gap: 6px;
@@ -24,15 +25,15 @@
             transition: border-color 0.2s, background 0.2s;
         }
         .db-select-wrapper:hover, .db-select-wrapper:focus-within {
-            border-color: #3b82f6;
-            background: rgba(59,130,246,0.25);
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 25%, transparent);
         }
         .db-select-wrapper select {
             appearance: none;
             background: transparent;
             border: none;
             outline: none;
-            color: #60a5fa;
+            color: var(--accent);
             font-family: 'Inter', sans-serif;
             font-size: 1em;
             font-weight: 700;
@@ -40,13 +41,13 @@
             padding-right: 6px;
         }
         .db-select-wrapper select option {
-            background: #1e3a5f;
-            color: white;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
         }
         .chevron-icon {
             width: 16px;
             height: 16px;
-            color: #60a5fa;
+            color: var(--accent);
             flex-shrink: 0;
             pointer-events: none;
         }
@@ -64,8 +65,8 @@
     <div class="text-center max-w-2xl px-4">
 
         <!-- Logo -->
-        <div class="mb-8 inline-block p-5 rounded-2xl bg-blue-600 shadow-2xl shadow-blue-500/30">
-            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="mb-8 inline-block p-5 rounded-2xl accent-bg" style="box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 30%, transparent);">
+            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--bg-primary)">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
             </svg>
@@ -86,7 +87,7 @@
             </div>
             <span>Lab</span>
         </h1>
-        <p class="text-slate-400 text-lg mb-10">
+        <p class="text-lg mb-10" style="color: var(--text-secondary);">
             Добро пожаловать в симулятор инженера баз данных.<br>
             Выберите раздел для начала работы.
         </p>
@@ -94,43 +95,49 @@
         <!-- Navigation Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <a id="refCard" href="02_PostgreSQL_Ref.html"
-               class="card p-6 bg-slate-800 rounded-2xl border border-slate-700 hover:border-blue-500 group block text-left">
-                <div class="w-10 h-10 rounded-lg bg-slate-700 group-hover:bg-blue-600 flex items-center justify-center mb-4 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="card p-6 rounded-2xl border group block text-left"
+               style="background: var(--bg-secondary); border-color: var(--border);">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-colors"
+                     style="background: var(--bg-card);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                 </div>
-                <h3 class="text-lg font-semibold mb-1 group-hover:text-blue-400 transition-colors">Теория</h3>
-                <p id="refCardDesc" class="text-sm text-slate-500">PostgreSQL — консоль и CLI</p>
+                <h3 class="text-lg font-semibold mb-1 transition-colors" style="color: var(--text-primary);">Теория</h3>
+                <p id="refCardDesc" class="text-sm" style="color: var(--text-secondary);">PostgreSQL — консоль и CLI</p>
             </a>
 
             <a href="lab.html"
-               class="card p-6 bg-slate-800 rounded-2xl border border-slate-700 hover:border-blue-500 group block text-left">
-                <div class="w-10 h-10 rounded-lg bg-slate-700 group-hover:bg-blue-600 flex items-center justify-center mb-4 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="card p-6 rounded-2xl border group block text-left"
+               style="background: var(--bg-secondary); border-color: var(--border);">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-colors"
+                     style="background: var(--bg-card);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <h3 class="text-lg font-semibold mb-1 group-hover:text-blue-400 transition-colors">Обучение</h3>
-                <p class="text-sm text-slate-500">Интерактивные практические задания</p>
+                <h3 class="text-lg font-semibold mb-1 transition-colors" style="color: var(--text-primary);">Обучение</h3>
+                <p class="text-sm" style="color: var(--text-secondary);">Интерактивные практические задания</p>
             </a>
 
             <a href="sandbox.html"
-               class="card p-6 bg-slate-800 rounded-2xl border border-slate-700 hover:border-blue-500 group block text-left">
-                <div class="w-10 h-10 rounded-lg bg-slate-700 group-hover:bg-blue-600 flex items-center justify-center mb-4 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               class="card p-6 rounded-2xl border group block text-left"
+               style="background: var(--bg-secondary); border-color: var(--border);">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-colors"
+                     style="background: var(--bg-card);">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent);">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
                     </svg>
                 </div>
-                <h3 class="text-lg font-semibold mb-1 group-hover:text-blue-400 transition-colors">Песочница</h3>
-                <p class="text-sm text-slate-500">Свободный режим</p>
+                <h3 class="text-lg font-semibold mb-1 transition-colors" style="color: var(--text-primary);">Песочница</h3>
+                <p class="text-sm" style="color: var(--text-secondary);">Свободный режим</p>
             </a>
         </div>
 
-        <p class="mt-10 text-xs text-slate-600 tracking-widest uppercase">DRE Lab · v2.0</p>
+        <p class="mt-10 text-xs tracking-widest uppercase" style="color: var(--text-secondary); opacity: 0.5;">DRE Lab · v2.0</p>
     </div>
 
     <script>
