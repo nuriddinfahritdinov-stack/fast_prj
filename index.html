@@ -3,13 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DRE PostgreSQL Lab - Welcome</title>
+    <title>DRE Lab - Welcome</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background: #0f172a; color: white; }
         .card { transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(59,130,246,0.2); }
+
+        /* Custom styled select */
+        .db-select-wrapper {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(59,130,246,0.15);
+            border: 2px solid rgba(59,130,246,0.5);
+            border-radius: 12px;
+            padding: 4px 10px 4px 14px;
+            gap: 6px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .db-select-wrapper:hover, .db-select-wrapper:focus-within {
+            border-color: #3b82f6;
+            background: rgba(59,130,246,0.25);
+        }
+        .db-select-wrapper select {
+            appearance: none;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #60a5fa;
+            font-family: 'Inter', sans-serif;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            padding-right: 6px;
+        }
+        .db-select-wrapper select option {
+            background: #1e3a5f;
+            color: white;
+        }
+        .chevron-icon {
+            width: 16px;
+            height: 16px;
+            color: #60a5fa;
+            flex-shrink: 0;
+            pointer-events: none;
+        }
+
+        .title-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body class="h-screen flex items-center justify-center">
@@ -23,7 +71,21 @@
             </svg>
         </div>
 
-        <h1 class="text-5xl font-bold mb-3 tracking-tight">DRE PostgreSQL Lab</h1>
+        <h1 class="text-5xl font-bold mb-3 tracking-tight title-line">
+            <span>DRE</span>
+            <div class="db-select-wrapper" id="dbSelectWrapper">
+                <select id="dbSelect" onchange="updatePage()">
+                    <option value="scripting">Scripting</option>
+                    <option value="postgresql" selected>PostgreSQL</option>
+                    <option value="oracle">Oracle Database</option>
+                    <option value="mongodb">MongoDB</option>
+                </select>
+                <svg class="chevron-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </div>
+            <span>Lab</span>
+        </h1>
         <p class="text-slate-400 text-lg mb-10">
             Добро пожаловать в симулятор инженера баз данных.<br>
             Выберите раздел для начала работы.
@@ -31,7 +93,7 @@
 
         <!-- Navigation Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <a href="theory.html"
+            <a id="refCard" href="02_PostgreSQL_Ref.html"
                class="card p-6 bg-slate-800 rounded-2xl border border-slate-700 hover:border-blue-500 group block text-left">
                 <div class="w-10 h-10 rounded-lg bg-slate-700 group-hover:bg-blue-600 flex items-center justify-center mb-4 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +102,7 @@
                     </svg>
                 </div>
                 <h3 class="text-lg font-semibold mb-1 group-hover:text-blue-400 transition-colors">Теория</h3>
-                <p class="text-sm text-slate-500">Техническое задание и контекст</p>
+                <p id="refCardDesc" class="text-sm text-slate-500">PostgreSQL — консоль и CLI</p>
             </a>
 
             <a href="lab.html"
@@ -70,5 +132,24 @@
 
         <p class="mt-10 text-xs text-slate-600 tracking-widest uppercase">DRE Lab · v2.0</p>
     </div>
+
+    <script>
+        const refMap = {
+            scripting:  { href: '01_Bash_Core.html',      desc: 'Bash — автоматизация и скрипты' },
+            postgresql: { href: '02_PostgreSQL_Ref.html',  desc: 'PostgreSQL — консоль и CLI' },
+            oracle:     { href: '03_Oracle_Ref.html',      desc: 'Oracle Database — DBA справочник' },
+            mongodb:    { href: '04_MongoDB_Ref.html',     desc: 'MongoDB — mongosh и NoSQL' },
+        };
+
+        function updatePage() {
+            const val = document.getElementById('dbSelect').value;
+            const info = refMap[val];
+            document.getElementById('refCard').href = info.href;
+            document.getElementById('refCardDesc').textContent = info.desc;
+        }
+
+        // Init
+        updatePage();
+    </script>
 </body>
 </html>

@@ -1,15 +1,8 @@
 [02_PostgreSQL_Ref.md](https://github.com/user-attachments/files/26420555/02_PostgreSQL_Ref.md)
 # **02\_PostgreSQL\_Ref.md: Справочник по работе с консолью**
 
-## **1\. Status & Requirements**
 
-* **Предварительное условие:** Освоение \[01\_Bash\_Core.md\].  
-* **Версия:** Данный гайд актуален для **PostgreSQL 14, 15 и 16**.  
-* **Инструментарий:** Основная утилита — psql (интерактивный терминал) и pg\_dump/pg\_restore (бекапы).
-
-## ---
-
-**2\. Deployment & Environment**
+**1\. Deployment & Environment**
 
 Прежде чем выполнять запросы, нужно настроить окружение, чтобы psql знал, куда «стучаться».
 
@@ -30,7 +23,7 @@
 
 ## ---
 
-**3\. CLI Reference (Bash-to-DB Focus)**
+**2\. CLI Reference (Bash-to-DB Focus)**
 
 Самая важная часть для автоматизатора — запуск команд без входа в интерактивный режим.
 
@@ -69,7 +62,7 @@ DB\_LIST=$(psql \-t \-A \-c "SELECT datname FROM pg\_database WHERE datistemplat
 
 ## ---
 
-**4\. Admin Ops: Однострочники для DBA**
+**3\. Admin Ops: Однострочники для DBA**
 
 Эти команды — твои «быстрые клавиши» в критических ситуациях.
 
@@ -95,7 +88,7 @@ psql \-c "SELECT pg\_is\_in\_recovery();"
 
 ## ---
 
-**5\. Official Sources (Must Read)**
+**4\. Official Sources (Must Read)**
 
 Для глубокого погружения используй только первоисточники. PostgreSQL имеет одну из лучших документаций в мире IT.
 

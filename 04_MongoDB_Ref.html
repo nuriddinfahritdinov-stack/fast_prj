@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRE Lab — MongoDB Справочник</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --accent: #16a34a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --code-bg: #f1f5f9;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-primary); color: var(--text-main); line-height: 1.6; }
+        article { font-family: 'Lora', serif; max-width: 56rem; margin: 0 auto; }
+        h1, h2, h3, h4 { font-family: 'Inter', sans-serif; }
+        code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.9em; color: #e11d48; }
+        pre { background: #0f172a; color: #e2e8f0; border-radius: 0.75rem; padding: 1.25rem; overflow-x: auto; margin: 1rem 0; }
+        pre code { background: transparent; color: inherit; padding: 0; font-size: 0.875rem; }
+        .section-anchor { scroll-margin-top: 2rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-family: 'Inter', sans-serif; font-size: 0.9rem; }
+        th { text-align: left; background: var(--bg-primary); padding: 0.75rem; border-bottom: 2px solid var(--border); color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+        td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+        .cmd-col { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 500; width: 35%; }
+        .sidebar { position: sticky; top: 2rem; height: fit-content; }
+        @media (max-width: 1024px) { .sidebar { display: none; } }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-12">
+
+    <div class="flex flex-col lg:flex-row gap-12 max-w-7xl mx-auto">
+
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 shrink-0">
+            <nav class="space-y-1">
+                <a href="index.html" class="flex items-center gap-2 text-green-700 hover:text-green-900 font-bold text-sm mb-8 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    На главную
+                </a>
+                <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-4">Содержание</p>
+                <a href="#status"  class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">1. Статус и требования</a>
+                <a href="#env"     class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">2. Deployment &amp; Env</a>
+                <a href="#cli"     class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">3. CLI Reference</a>
+                <a href="#caveat"  class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">4. Коварство JS</a>
+                <a href="#admin"   class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">5. Admin Ops</a>
+                <a href="#sources" class="block py-2 px-3 text-sm rounded-lg hover:bg-white hover:shadow-sm transition-all">6. Официальные источники</a>
+            </nav>
+            <div class="mt-12 p-4 bg-green-600 rounded-2xl text-white shadow-lg shadow-green-200">
+                <p class="text-xs font-bold uppercase tracking-tighter opacity-80 mb-2">Модуль 04</p>
+                <p class="text-sm leading-snug">Современная оболочка mongosh. Полная поддержка синтаксиса Node.js внутри CLI.</p>
+                <a href="lab.html" class="inline-block mt-4 text-xs bg-white text-green-600 font-bold py-2 px-4 rounded-lg hover:bg-green-50 transition-colors">Перейти к практике →</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <article class="flex-1 bg-white p-8 md:p-16 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+
+            <header class="mb-12 border-b border-slate-100 pb-12 text-center md:text-left">
+                <span class="inline-block px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-widest rounded-full mb-6">DRE Engineering Handbook · Модуль 04</span>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight leading-none">
+                    MongoDB: Справочник по работе с NoSQL (mongosh)
+                </h1>
+                <p class="text-xl text-slate-500 max-w-2xl leading-relaxed">
+                    Bash + JavaScript для автоматизации MongoDB — inline-запросы, JS-файлы, replica set и healthcheck.
+                </p>
+            </header>
+
+            <!-- Section 1 -->
+            <section id="status" class="section-anchor mb-16">
+                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">1. Статус и требования</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <p class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">Требование</p>
+                        <p class="text-sm font-semibold text-slate-700">01_Bash_Core.md</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <p class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">Инструмент</p>
+                        <p class="text-sm font-semibold text-slate-700">mongosh (новый shell)</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <p class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">Особенность</p>
+                        <p class="text-sm font-semibold text-slate-700">Node.js синтаксис в CLI</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2 -->
+            <section id="env" class="section-anchor mb-16">
+                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">2. Deployment &amp; Environment</h2>
+                <p class="mb-6 text-slate-700">В отличие от реляционных баз, здесь всё завязано на <strong>Connection String (URI)</strong>.</p>
+
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Переменные окружения</h3>
+                <div class="space-y-3 mb-6">
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <code class="text-green-700">export MONGO_URI="mongodb://admin:password@localhost:27017/admin?authSource=admin"</code>
+                    </div>
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <code class="text-green-700">export MONGODB_CONFIG="/etc/mongod.conf"</code>
+                        <p class="text-xs text-slate-500 mt-2">Основной конфиг (YAML-формат)</p>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Ключевые пути</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <p class="font-mono text-sm text-green-700 font-bold mb-2">/var/lib/mongodb</p>
+                        <p class="text-xs text-slate-600">Директория данных по умолчанию.</p>
+                    </div>
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                        <p class="font-mono text-sm text-green-700 font-bold mb-2">/var/log/mongodb/mongod.log</p>
+                        <p class="text-xs text-slate-600">Основной лог-файл сервера.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3 -->
+            <section id="cli" class="section-anchor mb-16">
+                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">3. CLI Reference: Bash + JavaScript</h2>
+                <p class="mb-6 text-slate-700">mongosh — это фактически REPL для JavaScript. Ты можешь писать полноценные JS-скрипты и вызывать их из Bash.</p>
+
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Выполнение кода Inline (флаг <code>--eval</code>)</h3>
+                <pre><code># Простая проверка состояния из Bash
+mongosh "$MONGO_URI" --quiet --eval "db.serverStatus().uptime"</code></pre>
+
+                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Выполнение JS-файлов</h3>
+                <pre><code># Запуск готового JS-сценария
+mongosh "$MONGO_URI" /scripts/maintenance/cleanup_logs.js</code></pre>
+
+                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">The «Inception» Pattern — JS внутри Bash</h3>
+                <p class="text-sm text-slate-600 mb-4">Генерация JS-кода «на лету» через Here-Documents:</p>
+                <pre><code>#!/bin/bash
+COLLECTION_NAME="users_2024"
+
+# Генерируем JS внутри Bash-контейнера
+mongosh "$MONGO_URI" &lt;&lt;EOF
+const count = db.${COLLECTION_NAME}.countDocuments({ active: true });
+console.log("Active users in ${COLLECTION_NAME}: " + count);
+EOF</code></pre>
+            </section>
+
+            <!-- Section 4 -->
+            <section id="caveat" class="section-anchor mb-16">
+                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">4. Коварство JavaScript в автоматизации</h2>
+                <p class="mb-6 text-slate-700">Хотя JS дает гибкость (циклы, условия, обработка JSON), у него есть обратная сторона:</p>
+                <div class="space-y-4">
+                    <div class="flex gap-4 p-5 border-l-4 border-amber-400 bg-amber-50 rounded-r-2xl">
+                        <div>
+                            <p class="font-bold text-amber-900 mb-1">Ад кавычек</p>
+                            <p class="text-sm text-amber-800">При передаче переменной Bash внутрь JS-строки внутри <code>--eval</code> легко запутаться в <code>'</code>, <code>"</code> и <code>`</code>.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-5 border-l-4 border-orange-400 bg-orange-50 rounded-r-2xl">
+                        <div>
+                            <p class="font-bold text-orange-900 mb-1">Типизация</p>
+                            <p class="text-sm text-orange-800">В Bash всё — строка. <code>NumberInt(10)</code> и <code>10.0</code> (Double) в MongoDB — разные вещи. Ошибка типа может сломать индексы.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-5 border-l-4 border-red-400 bg-red-50 rounded-r-2xl">
+                        <div>
+                            <p class="font-bold text-red-900 mb-1">Производительность</p>
+                            <p class="text-sm text-red-800"><strong>Правило:</strong> максимум логики — в запросе (Aggregation Framework), минимум — в обработке JS-циклом на клиенте.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5 -->
+            <section id="admin" class="section-anchor mb-16">
+                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">5. Admin Ops: Однострочники</h2>
+                <p class="mb-6 text-slate-700">Быстрые команды для проверки «здоровья» кластера.</p>
+
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Проверка Replica Set</h3>
+                <pre><code># Узнать, кто сейчас Primary
+mongosh --eval "rs.status().members.find(m => m.stateStr === 'PRIMARY').name" --quiet</code></pre>
+
+                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Управление индексами</h3>
+                <pre><code># Показать все индексы в коллекции в читаемом виде
+mongosh --eval "db.my_collection.getIndexes()" --json</code></pre>
+
+                <h3 class="text-lg font-bold text-slate-800 mt-8 mb-4">Healthcheck для мониторинга</h3>
+                <pre><code># Проверка связи и авторизации (вернет 1, если ОК)
+mongosh --eval "db.adminCommand('ping').ok" --quiet</code></pre>
+            </section>
+
+            <!-- Section 6 -->
+            <section id="sources" class="section-anchor mb-16">
+                <h2 class="text-2xl font-bold text-slate-900 mb-8 border-b-2 border-slate-100 pb-2">6. Официальные источники</h2>
+                <div class="space-y-3">
+                    <a href="https://www.mongodb.com/docs/mongodb-shell/reference/options/" target="_blank"
+                       class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:border-green-400 hover:bg-green-50/30 transition-all group">
+                        <span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </span>
+                        <div><p class="font-semibold text-slate-800 text-sm">mongosh CLI Options</p><p class="text-xs text-slate-500">Все флаги запуска оболочки</p></div>
+                    </a>
+                    <a href="https://www.mongodb.com/docs/manual/reference/configuration-options/" target="_blank"
+                       class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:border-green-400 hover:bg-green-50/30 transition-all group">
+                        <span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </span>
+                        <div><p class="font-semibold text-slate-800 text-sm">Configuration File Options</p><p class="text-xs text-slate-500">Справочник по mongod.conf</p></div>
+                    </a>
+                    <a href="https://www.mongodb.com/docs/manual/reference/command/" target="_blank"
+                       class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl hover:border-green-400 hover:bg-green-50/30 transition-all group">
+                        <span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </span>
+                        <div><p class="font-semibold text-slate-800 text-sm">Database Commands</p><p class="text-xs text-slate-500">Список всех db.runCommand() для скриптов</p></div>
+                    </a>
+                </div>
+            </section>
+
+            <footer class="mt-24 pt-12 border-t border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center font-bold text-white">D</div>
+                    <div>
+                        <p class="font-bold text-slate-900 text-sm">DRE Lab Knowledge Base</p>
+                        <p class="text-xs text-slate-400">© 2024 · MongoDB Mastery</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-400 font-medium italic">"Schema-less by design, reliable by engineer."</p>
+                </div>
+            </footer>
+
+        </article>
+    </div>
+
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>
