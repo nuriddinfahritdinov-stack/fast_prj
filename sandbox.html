@@ -3,57 +3,655 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DRE PostgreSQL Lab - Песочница</title>
+    <title>DRE Lab — Виртуальная Песочница</title>
+    <meta name="description" content="Полноценная изолированная среда для практики DBA: Bash, PostgreSQL, MongoDB в Docker-контейнерах">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
     <!-- Shared Theme Engine -->
     <link rel="stylesheet" href="theme.css">
     <script src="theme.js"></script>
+
     <style>
-        body { font-family: var(--font-mono); }
-        @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
-        .cursor { display: inline-block; width: 10px; height: 1.2em; background: var(--text-primary); animation: blink 1s step-end infinite; vertical-align: text-bottom; margin-left: 2px; }
-        .scan { background: repeating-linear-gradient(0deg, transparent, transparent 2px, color-mix(in srgb, var(--text-primary) 5%, transparent) 2px, color-mix(in srgb, var(--text-primary) 5%, transparent) 4px); }
+        * { box-sizing: border-box; }
+
+        /* ── Animated gradient mesh ──────────────────────────────── */
+        .mesh-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .mesh-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background:
+                radial-gradient(ellipse at 20% 50%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, color-mix(in srgb, var(--accent) 6%, transparent) 0%, transparent 50%);
+            animation: meshDrift 20s ease-in-out infinite alternate;
+        }
+        @keyframes meshDrift {
+            0%   { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-5%, -3%) rotate(3deg); }
+        }
+
+        /* ── Glass card ──────────────────────────────────────────── */
+        .glass {
+            background: color-mix(in srgb, var(--bg-secondary) 85%, transparent);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+        }
+
+        /* ── Environment cards ───────────────────────────────────── */
+        .env-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(.4,0,.2,1);
+            position: relative;
+            overflow: hidden;
+        }
+        .env-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .env-card:hover::before,
+        .env-card.active::before { opacity: 1; }
+        .env-card:hover {
+            border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px color-mix(in srgb, var(--accent) 15%, transparent);
+        }
+        .env-card.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent), 0 8px 32px color-mix(in srgb, var(--accent) 20%, transparent);
+        }
+
+        .env-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+            transition: transform 0.3s;
+        }
+        .env-card:hover .env-icon { transform: scale(1.1); }
+
+        /* ── Terminal wrapper ─────────────────────────────────────── */
+        .terminal-wrapper {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            position: relative;
+            transition: border-color 0.3s;
+        }
+        .terminal-wrapper.connected {
+            border-color: #22c55e;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.15);
+        }
+        .terminal-wrapper.error {
+            border-color: #ef4444;
+        }
+
+        .terminal-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+        .terminal-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .terminal-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #1e1f29;
+        }
+
+        /* ── Status indicator ─────────────────────────────────────── */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            flex-shrink: 0;
+        }
+        .status-dot.online {
+            background: #22c55e;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+            animation: pulse-green 2s ease-in-out infinite;
+        }
+        .status-dot.offline {
+            background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+        .status-dot.loading {
+            background: #f59e0b;
+            animation: pulse-amber 1s ease-in-out infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes pulse-amber {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.85); }
+        }
+
+        /* ── Scanline overlay for cyberpunk feel ─────────────────── */
+        .scanline-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+            z-index: 2;
+        }
+
+        /* ── Features grid ───────────────────────────────────────── */
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+        .feature-item:hover {
+            background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
+        }
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 16px;
+            background: color-mix(in srgb, var(--accent) 15%, transparent);
+            color: var(--accent);
+        }
+
+        /* ── Fade-in animation ───────────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: none; }
+        }
+        .anim-fade { animation: fadeUp 0.6s ease-out both; }
+        .anim-d1 { animation-delay: 0.1s; }
+        .anim-d2 { animation-delay: 0.2s; }
+        .anim-d3 { animation-delay: 0.3s; }
+        .anim-d4 { animation-delay: 0.4s; }
+        .anim-d5 { animation-delay: 0.5s; }
+
+        /* ── No-sandbox notice ────────────────────────────────────── */
+        .no-sandbox-notice {
+            background: color-mix(in srgb, var(--accent) 8%, transparent);
+            border: 1px dashed var(--accent);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        /* ── Quick-connect cheat sheet ────────────────────────────── */
+        .cheat-sheet {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        .cheat-sheet .cmd {
+            color: var(--accent);
+        }
+        .cheat-sheet .comment {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
     </style>
 </head>
-<body class="h-screen flex flex-col items-center justify-center scan">
 
-    <div class="text-center px-6 max-w-lg">
-        <!-- Icon -->
-        <div class="text-7xl mb-6 select-none opacity-80">🚧</div>
+<body id="dre-no-auto-switcher" class="min-h-screen overflow-x-hidden">
+    <div class="mesh-bg"></div>
 
-        <!-- Status line -->
-        <p class="text-xs tracking-widest uppercase mb-2" style="color: var(--text-secondary)">
-            STATUS: <span style="color: var(--accent)">UNDER CONSTRUCTION</span>
-        </p>
+    <!-- ═══ Header ═══════════════════════════════════════════════ -->
+    <header class="glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <a href="index.html" class="flex items-center space-x-2 group">
+                    <div class="w-8 h-8 rounded accent-bg flex items-center justify-center font-bold text-white shadow-lg text-sm">P</div>
+                    <span class="font-bold tracking-tight text-sm uppercase group-hover:opacity-75 transition-opacity">DRE Lab</span>
+                </a>
+                <nav class="flex space-x-1">
+                    <a href="index.html" class="text-xs font-semibold px-3 py-1 rounded text-custom-sec hover:opacity-100 opacity-60 transition-opacity">Главная</a>
+                    <a href="theory.html" class="text-xs font-semibold px-3 py-1 rounded text-custom-sec hover:opacity-100 opacity-60 transition-opacity">Теория</a>
+                    <span class="text-xs font-semibold px-3 py-1 rounded accent-bg text-white">Песочница</span>
+                </nav>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div id="global-status" class="flex items-center text-xs">
+                    <span class="status-dot loading"></span>
+                    <span class="text-custom-sec">Проверка...</span>
+                </div>
+                <select id="themeSelect"
+                    class="bg-custom-sec border border-custom text-[10px] rounded px-2 py-1 outline-none cursor-pointer"
+                    onchange="window.DRETheme && window.DRETheme.set(this.value)">
+                </select>
+            </div>
+        </div>
+    </header>
 
-        <h1 class="text-2xl font-bold tracking-tighter uppercase italic mb-4" style="color: var(--text-primary)">
-            Section Unavailable<span class="cursor"></span>
-        </h1>
+    <!-- ═══ Main Content ═════════════════════════════════════════ -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
 
-        <p class="text-sm leading-relaxed mb-8" style="color: var(--text-secondary)">
-            Песочница временно недоступна.<br>
-            Мы настраиваем изоляцию контейнеров и среду выполнения.
-        </p>
-
-        <!-- Terminal-style message -->
-        <div class="text-left border rounded-lg p-4 text-xs mb-8" style="background: var(--pre-bg); border-color: var(--border); color: var(--pre-color); font-family: var(--font-mono);">
-            <p><span style="color: var(--text-secondary)">$</span> docker ps --filter "name=sandbox"</p>
-            <p class="mt-1" style="color: var(--text-secondary)">CONTAINER ID   IMAGE   ...</p>
-            <p class="mt-1" style="color: var(--accent)">// No containers running. Setup in progress.</p>
+        <!-- Title section -->
+        <div class="text-center mb-10 anim-fade">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase mb-4"
+                 style="background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent);">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                </svg>
+                Docker Sandbox
+            </div>
+            <h1 class="text-4xl font-extrabold tracking-tight mb-3">Виртуальная Лаборатория</h1>
+            <p class="text-lg max-w-2xl mx-auto" style="color: var(--text-secondary)">
+                Полноценная изолированная среда с <strong>реальным терминалом</strong>,
+                PostgreSQL 15 и MongoDB 7 — всё в Docker-контейнерах.
+            </p>
         </div>
 
-        <a href="index.html"
-           class="inline-block px-8 py-2 border text-xs tracking-widest uppercase transition-all duration-200"
-           style="border-color: var(--border); color: var(--text-primary); background: transparent;"
-           onmouseover="this.style.background='var(--text-primary)'; this.style.color='var(--bg-primary)'"
-           onmouseout="this.style.background='transparent'; this.style.color='var(--text-primary)'">
-            ← Вернуться
-        </a>
-    </div>
+        <!-- ── Environment Selector ──────────────────────────────── -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 anim-fade anim-d1" id="envSelector">
+            <div class="env-card active" data-env="full" onclick="selectEnv(this)">
+                <div class="env-icon" style="background: color-mix(in srgb, #a78bfa 20%, var(--bg-card));">🖥️</div>
+                <h3 class="font-bold text-sm mb-1">Полная среда</h3>
+                <p class="text-xs" style="color: var(--text-secondary)">Bash + PostgreSQL + MongoDB<br>все инструменты DRE</p>
+            </div>
+            <div class="env-card" data-env="bash" onclick="selectEnv(this)">
+                <div class="env-icon" style="background: color-mix(in srgb, #22c55e 20%, var(--bg-card));">💻</div>
+                <h3 class="font-bold text-sm mb-1">Bash Shell</h3>
+                <p class="text-xs" style="color: var(--text-secondary)">Чистый Linux<br>grep, sed, awk, pipes</p>
+            </div>
+            <div class="env-card" data-env="postgres" onclick="selectEnv(this)">
+                <div class="env-icon" style="background: color-mix(in srgb, #3b82f6 20%, var(--bg-card));">🐘</div>
+                <h3 class="font-bold text-sm mb-1">PostgreSQL</h3>
+                <p class="text-xs" style="color: var(--text-secondary)">psql, pg_dump<br>SQL запросы, администрирование</p>
+            </div>
+            <div class="env-card" data-env="mongo" onclick="selectEnv(this)">
+                <div class="env-icon" style="background: color-mix(in srgb, #10b981 20%, var(--bg-card));">🍃</div>
+                <h3 class="font-bold text-sm mb-1">MongoDB</h3>
+                <p class="text-xs" style="color: var(--text-secondary)">mongosh<br>CRUD, агрегации, индексы</p>
+            </div>
+        </div>
 
-    <footer class="absolute bottom-6 text-xs tracking-widest uppercase" style="color: var(--text-secondary)">
-        DRE Lab · Sandbox
+        <!-- ── Terminal ──────────────────────────────────────────── -->
+        <div class="anim-fade anim-d2 mb-8">
+            <div class="terminal-wrapper" id="terminalWrapper" style="height: 500px;">
+                <div class="terminal-header">
+                    <div class="flex items-center gap-3">
+                        <div class="terminal-dots">
+                            <span style="background: #ef4444;"></span>
+                            <span style="background: #f59e0b;"></span>
+                            <span style="background: #22c55e;"></span>
+                        </div>
+                        <span class="text-xs font-mono" style="color: var(--text-secondary);" id="terminalTitle">
+                            student@dre-sandbox ~ $
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs" style="color: var(--text-secondary);" id="sessionTimer">⏱ 10:00</span>
+                        <button onclick="reconnectTerminal()" class="text-xs px-3 py-1 rounded border border-custom hover:opacity-80 transition-opacity"
+                                style="color: var(--text-secondary);" title="Переподключиться">
+                            🔄 Reconnect
+                        </button>
+                    </div>
+                </div>
+                <div class="scanline-overlay"></div>
+                <div id="terminalContainer" style="height: calc(100% - 42px); position: relative;">
+                    <!-- iframe or fallback goes here -->
+                    <div id="terminalLoading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#1e1f29;z-index:3;">
+                        <div class="text-center">
+                            <div style="font-size:48px;margin-bottom:16px;">🧪</div>
+                            <p class="text-sm font-mono" style="color:#6272a4;">Подключение к песочнице...</p>
+                            <div style="width:200px;height:2px;background:#44475a;border-radius:1px;margin:16px auto 0;">
+                                <div style="width:40%;height:100%;background:var(--accent);border-radius:1px;animation:loadBar 1.5s ease-in-out infinite;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            @keyframes loadBar {
+                0%   { width: 10%; margin-left: 0; }
+                50%  { width: 60%; margin-left: 20%; }
+                100% { width: 10%; margin-left: 90%; }
+            }
+        </style>
+
+        <!-- ── Bottom panels: Quick Reference + Features ─────────── -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 anim-fade anim-d3">
+
+            <!-- Quick Reference -->
+            <div class="glass rounded-2xl p-6">
+                <h2 class="font-bold text-sm mb-4 flex items-center gap-2">
+                    <span style="color: var(--accent);">⚡</span> Быстрые команды
+                </h2>
+                <div class="cheat-sheet space-y-1">
+                    <p><span class="comment"># PostgreSQL</span></p>
+                    <p><span class="cmd">pg</span>                      <span class="comment">→ подключиться к PostgreSQL (superuser)</span></p>
+                    <p><span class="cmd">sudo systemctl status postgresql</span>  <span class="comment">→ проверить статус</span></p>
+                    <p><span class="cmd">psql -U student drelab</span></p>
+                    <p>&nbsp;</p>
+                    <p><span class="comment"># MongoDB</span></p>
+                    <p><span class="cmd">mongo</span>                   <span class="comment">→ подключиться к MongoDB</span></p>
+                    <p><span class="cmd">sudo systemctl status mongod</span>      <span class="comment">→ проверить статус</span></p>
+                    <p><span class="cmd">mongosh</span></p>
+                    <p>&nbsp;</p>
+                    <p><span class="comment"># Администрирование (Full Root Access)</span></p>
+                    <p><span class="cmd">sudo apt install &lt;pkg&gt;</span>  <span class="comment">→ установить любой пакет</span></p>
+                    <p><span class="cmd">sudo journalctl -u postgresql</span>   <span class="comment">→ логи сервиса</span></p>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="glass rounded-2xl p-6">
+                <h2 class="font-bold text-sm mb-4 flex items-center gap-2">
+                    <span style="color: var(--accent);">🔬</span> Что доступно в песочнице
+                </h2>
+                <div class="space-y-1">
+                    <div class="feature-item">
+                        <div class="feature-icon">👑</div>
+                        <div>
+                            <p class="text-sm font-semibold">Полный Root доступ (sudo)</p>
+                            <p class="text-xs" style="color: var(--text-secondary)">Устанавливайте пакеты (apt install), управляйте сервисами (systemctl), читайте логи (journalctl)</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🐘</div>
+                        <div>
+                            <p class="text-sm font-semibold">PostgreSQL 15</p>
+                            <p class="text-xs" style="color: var(--text-secondary)">Реальная БД с учебными данными (servers, incidents, metrics)</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🍃</div>
+                        <div>
+                            <p class="text-sm font-semibold">MongoDB 7</p>
+                            <p class="text-xs" style="color: var(--text-secondary)">mongosh, коллекции: servers, incidents, orders</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">⏱️</div>
+                        <div>
+                            <p class="text-sm font-semibold">Сессия 10 минут</p>
+                            <p class="text-xs" style="color: var(--text-secondary)">Auto-disconnect через TMOUT. Переподключение: кнопка Reconnect</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Architecture diagram ──────────────────────────────── -->
+        <div class="glass rounded-2xl p-6 mt-6 anim-fade anim-d4">
+            <h2 class="font-bold text-sm mb-4 flex items-center gap-2">
+                <span style="color: var(--accent);">🏗️</span> Архитектура среды
+            </h2>
+            <pre class="text-xs font-mono overflow-x-auto" style="color: var(--text-secondary); line-height: 1.6;">
+┌─────────────────────────────────────────────────────────────────┐
+│  <span style="color: var(--accent);">Browser</span>  →  http://localhost:8080                              │
+│                      │                                          │
+│             ┌───────┴───────┐                             │
+│             │  <span style="color: var(--text-primary);">Nginx (web)</span>   │  ← HTML/CSS/JS + Reverse Proxy  │
+│             └──┬────────┬───┘                             │
+│        static  │  proxy │ /terminal/                      │
+│        files   │        │                                 │
+│                │   ┌────┴──────────────────────────┐      │
+│                │   │ <span style="color: var(--text-primary);">Sandbox (Ubuntu + Full Root)</span>  │      │
+│                │   │  <span style="color: #3b82f6;">PostgreSQL 15</span>  /  <span style="color: #10b981;">MongoDB 7</span>  │      │
+│                │   └──┬─────────────────────────┬──┘      │
+│                │      │                         │         │
+│           ┌────┴──┐   │                     ┌───┴─────┐   │
+│           │  <span style="color: var(--accent);">APT</span>  │   │                     │ <span style="color: var(--text-secondary);">Volumes</span> │   │
+│           │ cache │   │                     │ <span style="color: var(--text-secondary);">(Data)</span>  │   │
+│           └───────┘   │                     └─────────┘   │
+│                       │                                   │
+│              docker network: dre-lab-net                  │
+└───────────────────────────────────────────────────────────┘</pre>
+        </div>
+
+    </main>
+
+    <!-- ═══ Footer ═══════════════════════════════════════════════ -->
+    <footer class="border-t mt-12" style="border-color: var(--border);">
+        <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-5 h-5 rounded accent-bg flex items-center justify-center text-white text-[9px] font-bold">P</div>
+                <span class="text-xs font-semibold tracking-tight uppercase">DRE Lab</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-secondary);">
+                Docker Sandbox v1.0 · <code class="text-[10px]" style="color: var(--accent);">./deploy.sh start</code>
+            </p>
+        </div>
     </footer>
+
+    <!-- ═══ Script ═══════════════════════════════════════════════ -->
+    <script>
+        // ── Configuration ───────────────────────────────────────────
+        const TERMINAL_BASE = '/terminal/';
+        const HEALTH_URL    = '/health';
+        const CHECK_INTERVAL = 15000; // 15 sec
+        const SESSION_SECONDS = 600;  // 10 min
+
+        let currentEnv = 'full';
+        let isConnected = false;
+        let sessionTimerInterval = null;
+        let sessionSecondsLeft = SESSION_SECONDS;
+
+        // ── Theme selector population ───────────────────────────────
+        (function initThemeSelector() {
+            const sel = document.getElementById('themeSelect');
+            if (!sel || !window.DRETheme) return;
+            window.DRETheme.themes.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = t.name;
+                if (t.id === window.DRETheme.get()) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        })();
+
+        // Listen for theme changes
+        window.addEventListener('dre-theme-changed', (e) => {
+            const sel = document.getElementById('themeSelect');
+            if (sel) sel.value = e.detail.theme;
+        });
+
+        // ── Environment selection ───────────────────────────────────
+        function selectEnv(el) {
+            document.querySelectorAll('.env-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            currentEnv = el.dataset.env;
+
+            const titles = {
+                full:     'student@dre-sandbox ~ $ (Полная среда)',
+                bash:     'student@dre-sandbox ~ $ (Bash)',
+                postgres: 'student@dre-sandbox ~ $ psql -U dre drelab',
+                mongo:    'student@dre-sandbox ~ $ mongosh'
+            };
+            document.getElementById('terminalTitle').textContent = titles[currentEnv] || titles.full;
+
+            // Reconnect to terminal when environment changes
+            connectTerminal();
+        }
+
+        // ── Terminal connection ──────────────────────────────────────
+        function connectTerminal() {
+            const container = document.getElementById('terminalContainer');
+            const wrapper   = document.getElementById('terminalWrapper');
+            const loading   = document.getElementById('terminalLoading');
+
+            // Remove existing iframe
+            const oldIframe = container.querySelector('iframe');
+            if (oldIframe) oldIframe.remove();
+
+            // Show loading
+            if (loading) loading.style.display = 'flex';
+
+            // Create iframe
+            const iframe = document.createElement('iframe');
+            iframe.className = 'terminal-iframe';
+            iframe.src = TERMINAL_BASE;
+            iframe.setAttribute('allow', 'clipboard-read; clipboard-write');
+
+            iframe.onload = () => {
+                if (loading) loading.style.display = 'none';
+                wrapper.classList.add('connected');
+                wrapper.classList.remove('error');
+                isConnected = true;
+                updateGlobalStatus('online', 'Песочница активна');
+                resetSessionTimer();
+            };
+
+            iframe.onerror = () => {
+                if (loading) loading.style.display = 'none';
+                wrapper.classList.remove('connected');
+                wrapper.classList.add('error');
+                isConnected = false;
+                updateGlobalStatus('offline', 'Не подключено');
+            };
+
+            container.appendChild(iframe);
+        }
+
+        function reconnectTerminal() {
+            connectTerminal();
+        }
+
+        // ── Health check ─────────────────────────────────────────────
+        function checkHealth() {
+            fetch(HEALTH_URL)
+                .then(r => {
+                    if (r.ok) {
+                        if (!isConnected) connectTerminal();
+                    } else {
+                        throw new Error('unhealthy');
+                    }
+                })
+                .catch(() => {
+                    isConnected = false;
+                    updateGlobalStatus('offline', 'Сервер недоступен');
+                    showFallback();
+                });
+        }
+
+        function updateGlobalStatus(state, text) {
+            const el = document.getElementById('global-status');
+            if (!el) return;
+            const dot = el.querySelector('.status-dot');
+            const label = el.querySelector('span:last-child');
+
+            dot.className = 'status-dot ' + state;
+            label.textContent = text;
+        }
+
+        function showFallback() {
+            const container = document.getElementById('terminalContainer');
+            const loading = document.getElementById('terminalLoading');
+            const iframe = container.querySelector('iframe');
+
+            if (iframe) iframe.remove();
+            if (loading) {
+                loading.innerHTML = `
+                    <div class="text-center px-8">
+                        <div style="font-size:48px;margin-bottom:16px;">🔌</div>
+                        <p class="text-base font-bold mb-2" style="color:#f8f8f2;">Песочница не запущена</p>
+                        <p class="text-sm mb-6" style="color:#6272a4;">
+                            Запустите Docker-контейнеры для активации терминала:
+                        </p>
+                        <div style="background:#282a36;border:1px solid #44475a;border-radius:8px;padding:16px;text-align:left;">
+                            <code class="text-sm" style="color:#50fa7b;font-family:'JetBrains Mono',monospace;">
+                                $ cd /path/to/dre-lab<br>
+                                $ cp .env.example .env<br>
+                                $ ./deploy.sh start
+                            </code>
+                        </div>
+                        <button onclick="checkHealth()" class="mt-4 px-6 py-2 rounded-lg text-sm font-semibold transition"
+                                style="background:var(--accent);color:var(--bg-primary);">
+                            🔄 Проверить снова
+                        </button>
+                    </div>
+                `;
+                loading.style.display = 'flex';
+            }
+        }
+
+        // ── Session timer ────────────────────────────────────────────
+        function resetSessionTimer() {
+            sessionSecondsLeft = SESSION_SECONDS;
+            if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+            sessionTimerInterval = setInterval(() => {
+                sessionSecondsLeft--;
+                const min = Math.floor(sessionSecondsLeft / 60);
+                const sec = sessionSecondsLeft % 60;
+                const el = document.getElementById('sessionTimer');
+                if (el) {
+                    el.textContent = `⏱ ${min}:${sec.toString().padStart(2, '0')}`;
+                    if (sessionSecondsLeft <= 60) {
+                        el.style.color = '#ef4444';
+                    } else {
+                        el.style.color = '';
+                    }
+                }
+                if (sessionSecondsLeft <= 0) {
+                    clearInterval(sessionTimerInterval);
+                    if (el) el.textContent = '⏱ Сессия истекла';
+                }
+            }, 1000);
+        }
+
+        // ── Init ─────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial health check
+            checkHealth();
+
+            // Periodic health check
+            setInterval(checkHealth, CHECK_INTERVAL);
+        });
+    </script>
 </body>
 </html>

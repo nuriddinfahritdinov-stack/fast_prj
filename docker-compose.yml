@@ -1,0 +1,85 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  DRE Lab — Docker Compose
+#  Архитектура:
+#    sandbox-terminal — самодостаточный контейнер с PG + MongoDB + ttyd
+#    web              — Nginx для раздачи сайта + proxy для терминала
+#    apt-cache        — кэш пакетов apt для быстрой работы внутри sandbox
+# ═══════════════════════════════════════════════════════════════════════════
+
+services:
+
+  # ── APT Cache (ускоряет apt install внутри sandbox) ──────────────────────
+  apt-cache:
+    build:
+      context: .
+      dockerfile: docker/apt-cacher.Dockerfile
+    container_name: dre-apt-cache
+    restart: unless-stopped
+    volumes:
+      - apt-cache-data:/var/cache/apt-cacher-ng
+    networks:
+      - dre-lab-net
+
+  # ── Sandbox (Full Admin Environment) ────────────────────────────────────
+  # Автономный контейнер: Ubuntu + PostgreSQL 15 server + MongoDB 7 server
+  # + ttyd web-терминал + sudo + все инструменты DRE
+  sandbox-terminal:
+    build:
+      context: .
+      dockerfile: docker/sandbox.Dockerfile
+    container_name: dre-sandbox
+    restart: unless-stopped
+    environment:
+      SESSION_TIMEOUT: ${SESSION_TIMEOUT:-600}
+    volumes:
+      - sandbox-data:/var/lib/postgresql
+      - sandbox-mongo-data:/var/lib/mongodb
+    depends_on:
+      - apt-cache
+    networks:
+      - dre-lab-net
+    # PostgreSQL and MongoDB ports for external access (optional)
+    ports:
+      - "${PG_EXTERNAL_PORT:-5432}:5432"
+      - "${MONGO_EXTERNAL_PORT:-27017}:27017"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7681/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # ── Web Server (Nginx + static site) ────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dre-web
+    restart: unless-stopped
+    ports:
+      - "${DRE_PORT:-8080}:80"
+    depends_on:
+      sandbox-terminal:
+        condition: service_healthy
+    networks:
+      - dre-lab-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+# ── Volumes ───────────────────────────────────────────────────────────────
+volumes:
+  sandbox-data:
+    driver: local
+  sandbox-mongo-data:
+    driver: local
+  apt-cache-data:
+    driver: local
+
+# ── Network ───────────────────────────────────────────────────────────────
+networks:
+  dre-lab-net:
+    driver: bridge

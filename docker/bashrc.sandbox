@@ -1,0 +1,108 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  DRE Lab — Sandbox .bashrc (Full Admin Edition)
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Session timeout (10 min = 600 sec) ───────────────────────────────────
+export TMOUT=600
+
+# ── Prompt (shows user@hostname:path with colors) ────────────────────────
+PS1='\[\033[1;36m\]\u\[\033[0m\]@\[\033[1;35m\]dre-sandbox\[\033[0m\]:\[\033[1;34m\]\w\[\033[0m\]\$ '
+
+# ── Colors & basics ─────────────────────────────────────────────────────
+export TERM=xterm-256color
+export EDITOR=nano
+export PAGER=less
+
+alias ls='ls --color=auto'
+alias ll='ls -lah --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+
+# ── PostgreSQL shortcuts ─────────────────────────────────────────────────
+export PGDATA=/var/lib/postgresql/15/main
+export PGPORT=5432
+
+alias pg='psql -U student drelab'
+alias pgadmin='sudo -u postgres psql'
+alias pg-status='sudo systemctl status postgresql'
+alias pg-start='sudo systemctl start postgresql'
+alias pg-stop='sudo systemctl stop postgresql'
+alias pg-restart='sudo systemctl restart postgresql'
+alias pg-reload='sudo systemctl reload postgresql'
+alias pg-conf='sudo nano /etc/postgresql/15/main/postgresql.conf'
+alias pg-hba='sudo nano /etc/postgresql/15/main/pg_hba.conf'
+alias pg-log='sudo tail -50 /var/log/postgresql/postgresql-15-main.log'
+alias pg-logf='sudo tail -f /var/log/postgresql/postgresql-15-main.log'
+
+# ── MongoDB shortcuts ────────────────────────────────────────────────────
+alias mongo='mongosh'
+alias mongo-status='sudo systemctl status mongod'
+alias mongo-start='sudo systemctl start mongod'
+alias mongo-stop='sudo systemctl stop mongod'
+alias mongo-restart='sudo systemctl restart mongod'
+alias mongo-conf='sudo nano /etc/mongod.conf'
+alias mongo-log='sudo tail -50 /var/log/mongodb/mongod.log'
+alias mongo-logf='sudo tail -f /var/log/mongodb/mongod.log'
+
+# ── System monitoring ────────────────────────────────────────────────────
+alias ports='ss -tlnp'
+alias mem='free -h'
+alias disk='df -h'
+alias procs='ps aux --sort=-%mem | head -20'
+alias listen='ss -tlnp | grep LISTEN'
+
+# ── Service management ───────────────────────────────────────────────────
+alias services='sudo systemctl status'
+
+# ── History ──────────────────────────────────────────────────────────────
+export HISTSIZE=2000
+export HISTFILESIZE=5000
+export HISTCONTROL=ignoredups:ignorespace
+shopt -s histappend
+
+# ── Bash completion ──────────────────────────────────────────────────────
+if [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+fi
+
+# ── Help command ─────────────────────────────────────────────────────────
+help_dre() {
+    echo ""
+    echo -e "\033[1;35m═══ DRE Lab — Quick Reference ═══\033[0m"
+    echo ""
+    echo -e "\033[1;36m[PostgreSQL]\033[0m"
+    echo "  pg             → psql as student to drelab"
+    echo "  pgadmin        → psql as postgres (superuser)"
+    echo "  pg-status      → systemctl status postgresql"
+    echo "  pg-start/stop  → start/stop PostgreSQL"
+    echo "  pg-conf        → edit postgresql.conf"
+    echo "  pg-hba         → edit pg_hba.conf"
+    echo "  pg-log         → view last 50 lines of PG log"
+    echo ""
+    echo -e "\033[1;32m[MongoDB]\033[0m"
+    echo "  mongo          → mongosh"
+    echo "  mongo-status   → systemctl status mongod"
+    echo "  mongo-start/stop → start/stop MongoDB"
+    echo "  mongo-conf     → edit /etc/mongod.conf"
+    echo "  mongo-log      → view last 50 lines of Mongo log"
+    echo ""
+    echo -e "\033[1;33m[System]\033[0m"
+    echo "  services       → status of all services"
+    echo "  ports          → open network ports"
+    echo "  procs          → top processes by memory"
+    echo "  disk           → disk usage"
+    echo "  mem            → memory usage"
+    echo ""
+    echo -e "\033[1;31m[Admin]\033[0m"
+    echo "  sudo <cmd>     → run as root"
+    echo "  sudo apt install <pkg> → install packages"
+    echo "  sudo systemctl restart postgresql"
+    echo ""
+}
+alias help='help_dre'
+
+# ── Display MOTD on login ────────────────────────────────────────────────
+cat /etc/motd 2>/dev/null

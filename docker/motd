@@ -1,0 +1,25 @@
+
+╔══════════════════════════════════════════════════════════════╗
+║       🧪 DRE Lab — Full Admin Sandbox                       ║
+║       Ubuntu 22.04 · PostgreSQL 15 · MongoDB 7              ║
+║                                                              ║
+║  🐘 PostgreSQL:  sudo systemctl status postgresql            ║
+║                  psql -U postgres                            ║
+║                  sudo -u postgres psql                       ║
+║                                                              ║
+║  🍃 MongoDB:     sudo systemctl status mongod                ║
+║                  mongosh                                     ║
+║                                                              ║
+║  📁 Configs:     /etc/postgresql/15/main/postgresql.conf     ║
+║                  /etc/mongod.conf                            ║
+║                                                              ║
+║  📜 Logs:        /var/log/postgresql/                        ║
+║                  /var/log/mongodb/mongod.log                 ║
+║                  sudo journalctl -u postgresql               ║
+║                                                              ║
+║  🔧 Tools:       grep, sed, awk, df, du, lsof, ps, htop     ║
+║  👑 Root:        sudo <любая команда>                        ║
+║  📦 Packages:    sudo apt install <package>                  ║
+║                                                              ║
+║  ⏱  Session timeout: 10 min                                 ║
+╚══════════════════════════════════════════════════════════════╝
