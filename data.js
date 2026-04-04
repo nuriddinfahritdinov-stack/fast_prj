@@ -1,470 +1,333 @@
-// data.js — Curriculum, themes, and simulated filesystem for DRE PostgreSQL Lab
+// data.js — Curriculum for DRE Labs
 // ──────────────────────────────────────────────────────────────────────────────
-// check(cmd, state) → boolean
-//   cmd   : trimmed string the user typed
-//   state : { cwd, output, history }   (history = array of all previous cmds)
-//
-// Multiple valid paths are OR-combined inside each check function.
 
-// ── Helper: normalize flags / arguments ─────────────────────────────────────
-function cmdBase(cmd) { return cmd.split(/\s+/)[0].toLowerCase(); }
-function cmdArgs(cmd) { return cmd.split(/\s+/).slice(1).join(' '); }
-function hasFlag(cmd, flag) { return cmd.includes(flag); }
-function cmdHasArg(cmd, arg) {
-    return cmd.split(/\s+/).some(p => p === arg || p.endsWith('/' + arg.replace(/^\//, '')));
-}
-function pathMatch(a, b) {
-    // treat trailing slash as equivalent
-    return a.replace(/\/$/, '') === b.replace(/\/$/, '');
-}
-
-// =============================================================================
-//  CURRICULUM
-// =============================================================================
 const CURRICULUM = {
     modules: [
-
-        // ─────────────────────────────────────────────────────────────────────
-        // MODULE 1: PostgreSQL Intro — navigation & version
-        // ─────────────────────────────────────────────────────────────────────
-        {
-            id: "intro",
-            name: "PostgreSQL Intro",
-            tasks: [
-
-                // ── Task 1: check version ────────────────────────────────────
-                {
-                    id: "arch",
-                    title: "Версия сервера",
-                    hint: "psql --version   или   psql -V",
-                    validPaths: [
-                        "psql --version",
-                        "psql -V",
-                        "postgres --version",
-                        "postgres -V",
-                        "pg_config --version",
-                    ],
-                    theoryHTML: `
-<div class="prose">
-  <h1>Клиент-серверная архитектура PostgreSQL</h1>
-  <p>PostgreSQL работает по модели клиент-сервер. Когда вы открываете <code>psql</code>,
-  вы — клиент, а фоновый процесс <code>postgres</code> (ранее <code>postmaster</code>) —
-  сервер. Они общаются по Unix-сокету или TCP.</p>
-
-  <h2>Разделяемая память</h2>
-  <p>Сервер использует несколько разделяемых областей памяти:</p>
-  <ul>
-    <li><code>shared_buffers</code> — кэш страниц таблиц и индексов</li>
-    <li><code>WAL buffers</code> — буфер журнала транзакций перед записью на диск</li>
-    <li><code>work_mem</code> — память для одной операции сортировки / хэш-соединения</li>
-  </ul>
-
-  <h2>Полезные bash-команды для начала</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Что делает</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">psql --version</td><td>версия клиента psql</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">psql -V</td><td>сокращённый вариант</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">pg_config --version</td><td>версия скомпилированного сервера</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">postgres --version</td><td>версия бинарника сервера</td></tr>
-  </table>
-
-  <p><strong>Задание:</strong> Узнайте установленную версию — любым способом из таблицы выше.</p>
-</div>`,
-                    check(cmd, state) {
-                        const c = cmd.toLowerCase().trim();
-                        return (
-                            c === "psql --version" ||
-                            c === "psql -v" ||
-                            c === "postgres --version" ||
-                            c === "postgres -v" ||
-                            c === "pg_config --version" ||
-                            // also accept if user piped or used full path
-                            (c.includes("psql") && c.includes("version"))
-                        );
-                    }
-                },
-
-                // ── Task 2: navigate to configs ──────────────────────────────
-                {
-                    id: "fs-linux",
-                    title: "Файловая структура",
-                    hint: "cd /etc/postgresql   затем   ls",
-                    validPaths: [
-                        "cd /etc/postgresql → ls",
-                        "find /etc -name postgresql.conf",
-                        "ls /etc/postgresql",
-                        "locate postgresql.conf",
-                    ],
-                    theoryHTML: `
-<div class="prose">
-  <h1>Где лежат данные и конфиги?</h1>
-  <p>Стандартный layout в Debian/Ubuntu:</p>
-  <ul>
-    <li><code>/var/lib/postgresql/&lt;ver&gt;/main/</code> — PGDATA (данные)</li>
-    <li><code>/etc/postgresql/&lt;ver&gt;/main/</code> — конфигурация</li>
-    <li><code>/var/log/postgresql/</code> — серверные логи</li>
-    <li><code>/run/postgresql/</code> — PID-файл и Unix-сокет</li>
-  </ul>
-
-  <h2>Способы найти конфиг — выбери любой</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Метод</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">cd /etc/postgresql</td><td>перейти напрямую</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">ls /etc/postgresql</td><td>посмотреть содержимое без cd</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">find /etc -name postgresql.conf</td><td>рекурсивный поиск по имени</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">locate postgresql.conf</td><td>индексный поиск (если установлен)</td></tr>
-  </table>
-
-  <h2>Полезные флаги ls</h2>
-  <table class="text-xs w-full mb-2 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-3">Флаг</th><th class="text-left py-1">Эффект</th></tr>
-    <tr><td class="pr-3 py-1 font-mono">-l</td><td>длинный формат (права, владелец, размер)</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-a</td><td>показать скрытые файлы</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-h</td><td>человекочитаемые размеры (вместе с -l)</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-R</td><td>рекурсивный вывод</td></tr>
-  </table>
-
-  <p><strong>Задание:</strong> Найдите директорию с конфигами PostgreSQL любым удобным способом.</p>
-</div>`,
-                    check(cmd, state) {
-                        const c = cmd.toLowerCase().trim();
-                        // path 1: cd into the dir
-                        if (state.cwd && state.cwd.startsWith('/etc/postgresql')) return true;
-                        // path 2: ls the dir directly
-                        if ((c.startsWith('ls') && c.includes('/etc/postgresql'))) return true;
-                        // path 3: find
-                        if (c.startsWith('find') && c.includes('/etc') && c.includes('postgresql')) return true;
-                        // path 4: locate
-                        if (c.startsWith('locate') && c.includes('postgresql')) return true;
-                        return false;
-                    }
-                },
-
-                // ── Task 3: SQL — find config path ──────────────────────────
-                {
-                    id: "config-sql",
-                    title: "SQL: найти конфиг",
-                    hint: "SHOW config_file;   или   SELECT setting FROM pg_settings WHERE name='config_file';",
-                    validPaths: [
-                        "SHOW config_file;",
-                        "SELECT setting FROM pg_settings WHERE name='config_file';",
-                        "SHOW data_directory;",
-                        "\\! find /etc -name postgresql.conf",
-                    ],
-                    theoryHTML: `
-<div class="prose">
-  <h1>Поиск конфигов изнутри PostgreSQL</h1>
-  <p>Если вы уже подключены к базе через <code>psql</code>, пути к конфигам можно узнать не
-  выходя из сессии — двумя разными SQL-методами:</p>
-
-  <h2>Метод 1: SHOW</h2>
-  <p><code>SHOW config_file;</code></p>
-  <p>Возвращает абсолютный путь к <code>postgresql.conf</code>.</p>
-  <p><code>SHOW data_directory;</code></p>
-  <p>Возвращает путь к PGDATA.</p>
-
-  <h2>Метод 2: pg_settings</h2>
-  <p><code>SELECT name, setting FROM pg_settings WHERE name LIKE '%file%';</code></p>
-  <p>Системное представление <code>pg_settings</code> содержит все параметры конфигурации.
-  Фильтруя по <code>name</code>, можно найти любой путь.</p>
-
-  <h2>Метод 3: мета-команда \\!</h2>
-  <p>Внутри psql любую shell-команду можно выполнить через <code>\\!</code>:</p>
-  <p><code>\\! find /etc -name postgresql.conf</code></p>
-
-  <p><strong>Задание:</strong> Найдите расположение конфигурационного файла — выберите любой из трёх методов.</p>
-</div>`,
-                    check(cmd, state) {
-                        const c = cmd.toLowerCase().trim();
-                        if (c.includes('show config_file')) return true;
-                        if (c.includes('show data_directory')) return true;
-                        if (c.includes('pg_settings') && (c.includes('config_file') || c.includes("'%file%'") || c.includes('"%file%"'))) return true;
-                        if (c.includes('\\!') && c.includes('find') && c.includes('postgresql')) return true;
-                        // Also accept plain SELECT ... pg_settings
-                        if (c.includes('select') && c.includes('pg_settings')) return true;
-                        return false;
-                    }
-                },
-
-                // ── Task 4: read a specific section of a log file ────────────
-                {
-                    id: "logs-dre",
-                    title: "DRE: Чтение логов",
-                    hint: "tail -n 50 /var/log/postgresql/postgresql.log   или   grep ERROR ...",
-                    validPaths: [
-                        "tail /var/log/postgresql/postgresql.log",
-                        "tail -n 50 /var/log/postgresql/postgresql.log",
-                        "tail -f /var/log/postgresql/postgresql.log",
-                        "grep ERROR /var/log/postgresql/postgresql.log",
-                        "grep 'No space' /var/log/postgresql/postgresql.log",
-                        "cat /var/log/postgresql/postgresql.log | grep ERROR",
-                    ],
-                    theoryHTML: `
-<div class="prose">
-  <h1>Анализ сбоев: работа с логами</h1>
-  <p>Лог-файл PostgreSQL — первое место, куда смотрит DRE при инциденте.
-  Он содержит события уровней <code>LOG</code>, <code>WARNING</code>, <code>ERROR</code>,
-  <code>FATAL</code>, <code>PANIC</code>.</p>
-
-  <h2>Просмотр конца файла (tail)</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Что делает</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">tail postgresql.log</td><td>последние 10 строк</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">tail -n 50 postgresql.log</td><td>последние 50 строк</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">tail -f postgresql.log</td><td>следить в реальном времени (follow)</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">tail -f -n 100 postgresql.log</td><td>100 строк + слежение</td></tr>
-  </table>
-
-  <h2>Фильтрация ошибок (grep)</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Результат</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">grep ERROR postgresql.log</td><td>все строки с ERROR</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">grep -i 'no space' postgresql.log</td><td>без учёта регистра</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">grep -c ERROR postgresql.log</td><td>посчитать количество ошибок</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">grep -A 3 FATAL postgresql.log</td><td>строка + 3 следующих (контекст)</td></tr>
-  </table>
-
-  <h2>Комбинирование (pipe)</h2>
-  <p>Вывод одной команды можно передать в другую через <code>|</code>:</p>
-  <p><code>cat postgresql.log | grep ERROR | tail -n 20</code></p>
-  <p>Это прочитает файл, оставит только строки с ERROR, покажет последние 20.</p>
-
-  <p><strong>Задание:</strong> Просмотрите конец лог-файла PostgreSQL или отфильтруйте ошибки — выберите удобный способ.</p>
-</div>`,
-                    check(cmd, state) {
-                        const c = cmd.toLowerCase().trim();
-                        const hasLog = c.includes('postgresql.log') || (state.cwd === '/var/log/postgresql' && (c.includes('tail') || c.includes('cat') || c.includes('grep') || c.includes('less') || c.includes('more')));
-                        if (!hasLog) return false;
-                        return (
-                            c.startsWith('tail') ||
-                            c.startsWith('grep') ||
-                            c.includes('| grep') ||
-                            c.startsWith('cat') ||
-                            c.startsWith('less') ||
-                            c.startsWith('more')
-                        );
-                    }
-                },
-
-            ]
-        },
-
-        // ─────────────────────────────────────────────────────────────────────
-        // MODULE 2: Bash для DRE — работа с файлами и потоками
-        // ─────────────────────────────────────────────────────────────────────
+        // 0: Bash
         {
             id: "bash-dre",
-            name: "Bash для DRE",
+            name: "01. Bash для DRE",
             tasks: [
-
-                // ── Task 5: grep patterns ────────────────────────────────────
                 {
                     id: "grep-patterns",
                     title: "grep: паттерны поиска",
-                    hint: "grep -n 'shared_buffers' /etc/postgresql/postgresql.conf",
-                    validPaths: [
-                        "grep shared_buffers /etc/postgresql/postgresql.conf",
-                        "grep -n shared_buffers /etc/postgresql/postgresql.conf",
-                        "grep -i 'max_connections' /etc/postgresql/postgresql.conf",
-                        "grep '^[^#]' /etc/postgresql/postgresql.conf",
-                    ],
+                    hint: "grep -n 'shared_buffers' /etc/postgresql/15/main/postgresql.conf",
                     theoryHTML: `
 <div class="prose">
   <h1>grep — поиск по содержимому файлов</h1>
-  <p><code>grep</code> — незаменимый инструмент для работы с конфигами и логами.
-  Он выводит только строки, совпадающие с шаблоном.</p>
-
-  <h2>Основной синтаксис</h2>
-  <p><code>grep [флаги] 'паттерн' файл</code></p>
-
-  <h2>Самые полезные флаги</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-3">Флаг</th><th class="text-left py-1">Назначение</th></tr>
-    <tr><td class="pr-3 py-1 font-mono">-n</td><td>показывать номера строк</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-i</td><td>игнорировать регистр</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-v</td><td>инвертировать: строки БЕЗ совпадений</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-c</td><td>только количество совпадений</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-r</td><td>рекурсивно по директории</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-A N</td><td>показать N строк ПОСЛЕ совпадения</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-B N</td><td>показать N строк ДО совпадения</td></tr>
-    <tr><td class="pr-3 py-1 font-mono">-E</td><td>расширенные регулярные выражения (ERE)</td></tr>
-  </table>
-
-  <h2>Практические сценарии</h2>
-  <p>Найти все активные (раскомментированные) параметры конфига:</p>
-  <p><code>grep '^[^#]' /etc/postgresql/postgresql.conf</code></p>
-  <p>Показать значение конкретного параметра с номером строки:</p>
-  <p><code>grep -n 'shared_buffers' /etc/postgresql/postgresql.conf</code></p>
-  <p>Найти ошибки за последний час в логах (по временной метке):</p>
-  <p><code>grep '2024-03-30 21:' /var/log/postgresql/postgresql.log | grep ERROR</code></p>
-
-  <p><strong>Задание:</strong> Найдите значение параметра <code>shared_buffers</code> или <code>max_connections</code> в конфигурационном файле.</p>
+  <p><code>grep</code> — основной инструмент для поиска в конфигах и логах.</p>
+  <p><strong>Задание:</strong> Найдите значение параметра <code>shared_buffers</code> в файле <code>/etc/postgresql/15/main/postgresql.conf</code>.</p>
 </div>`,
                     check(cmd, state) {
                         const c = cmd.toLowerCase().trim();
-                        if (!c.startsWith('grep')) return false;
-                        const targetsConfig = c.includes('postgresql.conf') || state.cwd === '/etc/postgresql';
-                        const targetsParam  = c.includes('shared_buffers') || c.includes('max_connections') || c.includes('work_mem') || c.includes('wal') || c.includes('[^#]') || c.includes('^[^');
-                        return targetsConfig || targetsParam;
+                        return c.startsWith('grep') && c.includes('shared_buffers');
                     }
                 },
-
-                // ── Task 6: sed / awk — extract specific lines ───────────────
                 {
-                    id: "sed-awk",
-                    title: "sed и awk: фрагменты",
-                    hint: "awk '/shared_buffers/{print NR, $0}' postgresql.conf   или   sed -n '10,20p' файл",
-                    validPaths: [
-                        "awk '/shared_buffers/' postgresql.conf",
-                        "sed -n '10,20p' /etc/postgresql/postgresql.conf",
-                        "awk 'NR>=10 && NR<=20' /etc/postgresql/postgresql.conf",
-                        "awk -F= '/shared_buffers/{print $2}' postgresql.conf",
-                    ],
+                    id: "disk-check",
+                    title: "df: свободное место",
+                    hint: "df -h",
                     theoryHTML: `
 <div class="prose">
-  <h1>sed и awk — точечная работа с текстом</h1>
-  <p>Для DRE важно уметь извлекать конкретные диапазоны строк или поля из файлов,
-  не открывая их целиком.</p>
-
-  <h2>sed — потоковый редактор</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Что делает</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">sed -n '10,20p' file</td><td>вывести строки 10–20</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">sed -n '/ERROR/p' file</td><td>вывести строки с ERROR</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">sed 's/old/new/g' file</td><td>заменить all old→new (не сохраняет!)</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">sed -i 's/old/new/g' file</td><td>заменить в самом файле (in-place)</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">sed '/^#/d' file</td><td>удалить все строки-комментарии</td></tr>
-  </table>
-
-  <h2>awk — обработка полей</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Что делает</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">awk '{print $1}' file</td><td>первое поле каждой строки</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">awk 'NR>=10 &amp;&amp; NR&lt;=20' file</td><td>строки 10–20 по номеру</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">awk -F= '/param/{print $2}' f</td><td>значение параметра после =</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">awk '/START/,/END/' file</td><td>диапазон между двумя паттернами</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">awk '{sum+=$3} END{print sum}' f</td><td>сумма третьего поля</td></tr>
-  </table>
-
-  <h2>Сценарий: извлечь значение параметра</h2>
-  <p><code>awk -F= '/shared_buffers/{print $2}' /etc/postgresql/postgresql.conf</code></p>
-  <p>Результат: <code> 128MB</code></p>
-
-  <p><strong>Задание:</strong> Используйте <code>sed</code> или <code>awk</code> для просмотра конкретных строк конфига.</p>
+  <h1>Мониторинг диска</h1>
+  <p>Команда <code>df -h</code> показывает загрузку разделов.</p>
+  <p><strong>Задание:</strong> Проверьте свободное место на дисках.</p>
 </div>`,
-                    check(cmd, state) {
-                        const c = cmd.toLowerCase().trim();
-                        return c.startsWith('sed') || c.startsWith('awk');
-                    }
+                    check(cmd, state) { return cmd.trim() === 'df -h'; }
                 },
-
-                // ── Task 7: disk space — df / du ─────────────────────────────
                 {
-                    id: "disk-space",
-                    title: "Диск: df и du",
-                    hint: "df -h   или   du -sh /var/lib/postgresql",
-                    validPaths: [
-                        "df -h",
-                        "df -h /var/lib/postgresql",
-                        "du -sh /var/lib/postgresql",
-                        "du -sh /var/lib/postgresql/*",
-                        "du -h --max-depth=1 /var/lib/postgresql",
-                    ],
+                    id: "grep-v-comments",
+                    title: "Grep: без комментариев",
+                    hint: "grep -v '^#' /etc/postgresql/15/main/postgresql.conf",
                     theoryHTML: `
 <div class="prose">
-  <h1>Диагностика нехватки места</h1>
-  <p>Ошибка <code>No space left on device</code> в логах PostgreSQL означает, что файловая
-  система, на которой lежит PGDATA, заполнена. DRE должен мгновенно определить, кто
-  «съел» место.</p>
-
-  <h2>df — свободное место на разделах</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Назначение</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">df -h</td><td>все разделы, человекочитаемые</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">df -h /var/lib</td><td>только раздел, которому принадлежит путь</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">df -i</td><td>показать inode (часто тоже кончаются!)</td></tr>
-  </table>
-
-  <h2>du — размер директорий</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Назначение</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">du -sh /path</td><td>суммарный размер</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">du -h --max-depth=1 /path</td><td>размер каждой поддиректории</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">du -sh /* 2>/dev/null | sort -rh | head -10</td><td>топ-10 самых больших директорий</td></tr>
-  </table>
-
-  <h2>Типичный инцидент</h2>
-  <p>Лог показывает: <code>ERROR: No space left on device</code></p>
-  <p>1. <code>df -h</code> → видим 100% на <code>/var</code></p>
-  <p>2. <code>du -h --max-depth=1 /var</code> → виновник: <code>/var/lib/postgresql</code></p>
-  <p>3. <code>du -sh /var/lib/postgresql/15/main/base/*</code> → находим разросшуюся таблицу</p>
-
-  <p><strong>Задание:</strong> Проверьте свободное место на диске или размер директории PostgreSQL.</p>
+  <h1>Чистый вывод (без мусора)</h1>
+  <p>Конфигурационные файлы часто перегружены комментариями. Для быстрой проверки настроек используйте <code>grep -v '^#'</code>, чтобы исключить строки, начинающиеся на #.</p>
+  <p><strong>Задание:</strong> Выведите содержимое <code>postgresql.conf</code>, исключив все комментарии.</p>
 </div>`,
-                    check(cmd, state) {
-                        const c = cmd.toLowerCase().trim();
-                        if (c.startsWith('df')) return true;
-                        if (c.startsWith('du') && (c.includes('postgresql') || c.includes('/var'))) return true;
-                        return false;
+                    check(cmd, state) { 
+                        const c = cmd.replace(/\s+/g, ' ');
+                        return (c.includes("grep -v '^#'") || c.includes('grep -v "^#"')) && c.includes('postgresql.conf');
                     }
                 },
-
-                // ── Task 8: process inspection ps / lsof ────────────────────
                 {
-                    id: "process-check",
-                    title: "Процессы: ps и lsof",
-                    hint: "ps aux | grep postgres   или   lsof -i :5432",
-                    validPaths: [
-                        "ps aux | grep postgres",
-                        "ps -ef | grep postgres",
-                        "lsof -i :5432",
-                        "lsof -u postgres",
-                        "pgrep -a postgres",
-                        "systemctl status postgresql",
-                    ],
+                    id: "grep-v-clean",
+                    title: "Grep: только настройки",
+                    hint: "grep -E -v '^#|^$' /etc/postgresql/15/main/postgresql.conf",
                     theoryHTML: `
 <div class="prose">
-  <h1>Инспекция процессов PostgreSQL</h1>
-  <p>Прежде чем диагностировать проблему, нужно убедиться, что сервер вообще запущен
-  и понять, сколько клиентских процессов работает прямо сейчас.</p>
-
-  <h2>ps — список процессов</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Результат</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">ps aux | grep postgres</td><td>все postgres-процессы (постмастер + backeds)</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">ps -ef | grep postgres</td><td>то же, другой формат с PPID</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">pgrep -a postgres</td><td>только PID + имя бинарника</td></tr>
-  </table>
-
-  <h2>lsof — открытые файлы / сокеты</h2>
-  <table class="text-xs w-full mb-3 border-collapse">
-    <tr class="border-b border-current opacity-50"><th class="text-left py-1 pr-4">Команда</th><th class="text-left py-1">Результат</th></tr>
-    <tr><td class="pr-4 py-1 font-mono">lsof -i :5432</td><td>кто слушает порт PostgreSQL</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">lsof -u postgres</td><td>все файлы, открытые пользователем postgres</td></tr>
-    <tr><td class="pr-4 py-1 font-mono">lsof +D /var/lib/postgresql</td><td>файлы в директории PGDATA</td></tr>
-  </table>
-
-  <h2>systemctl (systemd)</h2>
-  <p><code>systemctl status postgresql</code> — статус юнита (active/inactive/failed).</p>
-  <p><code>journalctl -u postgresql --since "1 hour ago"</code> — последний час из journald.</p>
-
-  <p><strong>Задание:</strong> Убедитесь, что PostgreSQL запущен — проверьте процессы или порт.</p>
+  <h1>Удаление пустых строк и комментариев</h1>
+  <p>Чтобы оставить только значимые строки, нужно отфильтровать и комментарии, и пустые строки. Поможет расширенный grep (флаг <code>-E</code>) и паттерн <code>'^#|^$'</code>.</p>
+  <p><strong>Задание:</strong> Выведите только активные настройки из <code>postgresql.conf</code> (без комментариев и пустых строк).</p>
 </div>`,
                     check(cmd, state) {
-                        const c = cmd.toLowerCase().trim();
-                        if (c.includes('ps') && (c.includes('postgres') || c.includes('aux') || c.includes('-ef'))) return true;
-                        if (c.includes('lsof') && (c.includes('5432') || c.includes('postgres'))) return true;
-                        if (c.startsWith('pgrep') && c.includes('postgres')) return true;
-                        if (c.includes('systemctl') && c.includes('postgresql')) return true;
-                        if (c.includes('journalctl') && c.includes('postgresql')) return true;
-                        return false;
+                        const c = cmd.replace(/\s+/g, ' ');
+                        return (c.includes("-E") || c.includes("egrep")) && c.includes("-v") && (c.includes('^#|^$') || (c.includes('^#') && c.includes('^$'))) && c.includes('postgresql.conf');
                     }
                 },
+                {
+                    id: "grep-logs-error",
+                    title: "Логи: поиск ошибок",
+                    hint: "grep -E 'ERROR|FATAL' /var/log/postgresql/postgresql.log",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Диагностика по логам</h1>
+  <p>DRE должен мгновенно находить критические события. <code>ERROR</code> и <code>FATAL</code> — ваши главные цели.</p>
+  <p><strong>Задание:</strong> Найдите все строки с ошибками (ERROR или FATAL) в логе PostgreSQL.</p>
+</div>`,
+                    check(cmd, state) {
+                        const c = cmd.toLowerCase();
+                        return c.startsWith('grep') && (c.includes('error') || c.includes('fatal')) && c.includes('postgresql.log');
+                    }
+                },
+                {
+                    id: "ps-grep-postgres",
+                    title: "Процессы: Postgres",
+                    hint: "ps aux | grep postgres",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Мониторинг процессов</h1>
+  <p>Проверка запущенных процессов — база. Важно видеть не только сам сервер, но и вспомогательные процессы (checkpointer, walwriter).</p>
+  <p><strong>Задание:</strong> Выведите список всех процессов, связанных с <code>postgres</code>.</p>
+</div>`,
+                    check(cmd, state) {
+                        return cmd.includes('ps') && cmd.includes('|') && cmd.includes('grep') && cmd.includes('postgres');
+                    }
+                },
+                {
+                    id: "df-inodes-check",
+                    title: "Мониторинг: Inodes",
+                    hint: "df -i",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Коварные Inodes</h1>
+  <p>Иногда место на диске есть (<code>df -h</code>), но создать файл нельзя. Это значит закончились Inodes (индексные дескрипторы). Такое бывает при завалах в <code>pg_wal</code> или миллионах мелких временных файлов.</p>
+  <p><strong>Задание:</strong> Проверьте состояние Inodes в системе.</p>
+</div>`,
+                    check(cmd, state) { return cmd.trim() === 'df -i'; }
+                },
+                {
+                    id: "lsof-port-check",
+                    title: "Сеть: кто занял порт?",
+                    hint: "lsof -i :5432",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Конфликты портов</h1>
+  <p>Если база не стартует с ошибкой 'Address already in use', нужно узнать, кто занял порт 5432.</p>
+  <p><strong>Задание:</strong> Найдите процесс, слушающий порт 5432.</p>
+</div>`,
+                    check(cmd, state) { return cmd.includes('lsof') && cmd.includes('5432'); }
+                },
+                {
+                    id: "du-pg-wal",
+                    title: "Размер данных: pg_wal",
+                    hint: "du -sh /var/lib/postgresql/15/main/pg_wal",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Поиск виновников (Disk Usage)</h1>
+  <p>Когда место на диске тает, нужно проверять конкретные папки. Папка <code>pg_wal</code> (Write Ahead Log) — первое место, которое стоит проверить у Postgres.</p>
+  <p><strong>Задание:</strong> Узнайте размер директории <code>pg_wal</code>.</p>
+</div>`,
+                    check(cmd, state) { return cmd.includes('du') && cmd.includes('pg_wal'); }
+                },
+                {
+                    id: "sed-fix-config",
+                    title: "Sed: исправление конфига",
+                    hint: "sed -i 's/port = 5432/port = 5433/' /etc/postgresql/15/main/postgresql.conf",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Быстрые правки через sed</h1>
+  <p>DRE часто правит конфиги через скрипты. <code>sed -i</code> позволяет заменить текст прямо в файле без открытия редактора.</p>
+  <p><strong>Задание:</strong> Измените порт в конфигурации с 5432 на 5433 с помощью <code>sed</code>.</p>
+</div>`,
+                    check(cmd, state) { return cmd.includes('sed') && cmd.includes('5432') && cmd.includes('5433') && cmd.includes('postgresql.conf'); }
+                },
+                {
+                    id: "journalctl-db",
+                    title: "Journalctl: сбои сервиса",
+                    hint: "journalctl -u postgresql",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Системные логи (Systemd)</h1>
+  <p>Многие ошибки запуска попадают не в лог БД, а в системный журнал. <code>journalctl -u</code> — ваш лучший друг для отладки сервисов.</p>
+  <p><strong>Задание:</strong> Посмотрите последние записи в журнале для юнита <code>postgresql</code>.</p>
+</div>`,
+                    check(cmd, state) { return cmd.includes('journalctl') && cmd.includes('postgresql'); }
+                },
+                {
+                    id: "head-tail-peek",
+                    title: "Head/Tail: Анализ файла",
+                    hint: "head -n 5 /etc/postgresql/15/main/postgresql.conf",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Быстрый просмотр: Head и Tail</h1>
+  <p>Чтобы не выводить огромные файлы целиком, используйте <code>head</code> (начало) или <code>tail</code> (конец).</p>
+  <p><strong>Задание:</strong> Выведите первые 5 строк конфигурационного файла.</p>
+</div>`,
+                    check(cmd, state) { return cmd.includes('head') && cmd.includes('-n') && cmd.includes('5'); }
+                },
+                {
+                    id: "ps-wc-count",
+                    title: "Pipe & WC: Подсчет",
+                    hint: "ps aux | wc -l",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Конвейер и статистика</h1>
+  <p>Команда <code>wc -l</code> считает количество строк. В сочетании с конвейером она позволяет быстро оценить количество процессов или ошибок.</p>
+  <p><strong>Задание:</strong> Посчитайте общее количество запущенных процессов в системе через конвейер.</p>
+</div>`,
+                    check(cmd, state) { return cmd.includes('|') && cmd.includes('wc') && cmd.includes('-l'); }
+                },
+                {
+                    id: "bash-top",
+                    title: "Top: Мониторинг ресурсов",
+                    hint: "top",
+                    theoryHTML: `
+<div class="prose">
+  <h1>Real-time мониторинг</h1>
+  <p>Команда <code>top</code> показывает загрузку процессора, памяти и самые активные процессы в реальном времени. В симуляторе это снимок текущего состояния.</p>
+  <p><strong>Задание:</strong> Запустите команду <code>top</code> для мониторинга системы.</p>
+</div>`,
+                    check(cmd, state) { return cmd.trim() === "top"; }
+                }
 
             ]
+        },
+        // 1: PostgreSQL
+        {
+            id: "postgresql-core",
+            name: "02. PostgreSQL Core",
+            tasks: [
+                {
+                    id: "pg-version",
+                    title: "Версия сервера",
+                    hint: "psql --version",
+                    validPaths: ["psql --version", "psql -V", "postgres -V"],
+                    theoryHTML: `<div class="prose"><h1>PostgreSQL Version</h1><p>Первый шаг любого DRE — проверка версии ПО. Это критично для понимания доступных фич.</p><p><strong>Задание:</strong> Узнайте версию psql или самого сервера postgres.</p></div>`,
+                    check(cmd, state) { 
+                        const c = cmd.toLowerCase();
+                        return (c.includes('psql') || c.includes('postgres')) && (c.includes('version') || c.includes('-v')); 
+                    }
+                },
+                {
+                    id: "pg-config",
+                    title: "Поиск конфигурации",
+                    hint: "SHOW config_file;",
+                    validPaths: ["psql -c 'SHOW config_file;'", "psql -c 'SELECT sourcefile FROM pg_settings WHERE name = \"config_file\";'"],
+                    theoryHTML: `<div class="prose"><h1>Конфигурационные файлы</h1><p>В Linux конфиги обычно лежат в <code>/etc/postgresql/</code>, но надежнее спросить у самой БД.</p><p><strong>Задание:</strong> Выведите путь к основному файлу конфигурации через SQL запрос.</p></div>`,
+                    check(cmd, state) { return cmd.toLowerCase().includes('show config_file') || cmd.toLowerCase().includes('pg_settings'); }
+                },
+                {
+                    id: "pg-env-port",
+                    title: "Переменные окружения",
+                    hint: "export PGPORT=5432",
+                    validPaths: ["export PGPORT=5432", "PGPORT=5432 psql"],
+                    theoryHTML: `<div class="prose"><h1>Environment Variables</h1><p>Утилиты PostgreSQL (psql, pg_dump) используют переменные <code>PGHOST</code>, <code>PGPORT</code>, <code>PGUSER</code>.</p><p><strong>Задание:</strong> Установите переменную окружения <code>PGPORT</code> в значение 5432.</p></div>`,
+                    check(cmd, state) { return cmd.includes('PGPORT') && cmd.includes('5432'); }
+                },
+                {
+                    id: "pg-clean-output",
+                    title: "Чистый вывод (Scripts)",
+                    hint: "psql -At -c 'SELECT 1'",
+                    validPaths: ["psql -At -c 'SELECT ...'", "psql --no-align --tuples-only -c '...'"],
+                    theoryHTML: `<div class="prose"><h1>Автоматизация и парсинг</h1><p>Для Bash-скриптов нужны «голые» данные без рамок и заголовков. Используйте флаги <code>-A</code> (unaligned) и <code>-t</code> (tuples only).</p><p><strong>Задание:</strong> Выполните любой SELECT запрос в «чистом» режиме (флаги -A и -t).</p></div>`,
+                    check(cmd, state) { 
+                        const c = cmd.toLowerCase().trim();
+                        const isPsql = c.includes('psql');
+                        const hasA = c.includes('--no-align') || / -[a-z]*a/.test(c);
+                        const hasT = c.includes('--tuples-only') || / -[a-z]*t/.test(c);
+                        const hasC = c.includes('-c') || c.includes('--command');
+                        return isPsql && hasA && hasT && hasC;
+                    }
+                },
+                {
+                    id: "pg-terminate",
+                    title: "Управление сессиями",
+                    hint: "SELECT pg_terminate_backend(pid);",
+                    validPaths: ["psql -c 'SELECT pg_terminate_backend(1234);'", "psql -c 'SELECT pg_cancel_backend(pid);'"],
+                    theoryHTML: `<div class="prose"><h1>Emergency: Kill Process</h1><p>Когда запрос «вешает» базу, DRE должен уметь его прибить по PID процесса.</p><p><strong>Задание:</strong> Выполните SQL команду для завершения процесса (terminate) с фиктивным PID 1234.</p></div>`,
+                    check(cmd, state) { return cmd.toLowerCase().includes('pg_terminate_backend') || cmd.toLowerCase().includes('pg_cancel_backend'); }
+                },
+                {
+                    id: "pg-size",
+                    title: "Мониторинг объема",
+                    hint: "SELECT pg_size_pretty(pg_database_size('postgres'));",
+                    validPaths: ["psql -c 'SELECT pg_database_size(...)'", "psql -c 'SELECT pg_size_pretty(...)'"],
+                    theoryHTML: `<div class="prose"><h1>Size Matters</h1><p>Админу важно знать, сколько места занимает БД на диске.</p><p><strong>Задание:</strong> Выведите размер любой базы данных с помощью встроенных функций.</p></div>`,
+                    check(cmd, state) { return cmd.toLowerCase().includes('pg_database_size'); }
+                },
+                {
+                    id: "pg-recovery",
+                    title: "Статус репликации",
+                    hint: "SELECT pg_is_in_recovery();",
+                    validPaths: ["psql -c 'SELECT pg_is_in_recovery();'"],
+                    theoryHTML: `<div class="prose"><h1>HA & Replication</h1><p>Чтобы понять, является ли узел мастером (false) или репликой (true), используется спецфункция.</p><p><strong>Задание:</strong> Проверьте, находится ли сервер в режиме восстановления (recovery).</p></div>`,
+                    check(cmd, state) { return cmd.toLowerCase().includes('pg_is_in_recovery'); }
+                }
+            ]
+        },
+        // 2: Oracle
+        {
+            id: "oracle-dba",
+            name: "03. Oracle DBA",
+            tasks: [
+                {
+                    id: "ora-env",
+                    title: "Oracle SID",
+                    hint: "echo $ORACLE_SID",
+                    theoryHTML: `<div class="prose"><h1>Oracle SID</h1><p>Задание: Проверьте переменную ORACLE_SID.</p></div>`,
+                    check(cmd, state) { return cmd.includes('ORACLE_SID'); }
+                },
+                {
+                    id: "ora-status",
+                    title: "V$INSTANCE",
+                    hint: "SELECT status FROM v$instance;",
+                    theoryHTML: `<div class="prose"><h1>Oracle Status</h1><p>Задание: Проверьте статус инстанса через SQL.</p></div>`,
+                    check(cmd, state) { return cmd.toLowerCase().includes('v$instance'); }
+                }
+            ]
+        },
+        // 3: MongoDB
+        {
+            id: "mongodb-admin",
+            name: "04. MongoDB Admin",
+            tasks: [
+                {
+                    id: "mg-uri",
+                    title: "MONGO_URI",
+                    hint: "echo $MONGO_URI",
+                    theoryHTML: `<div class="prose"><h1>MongoDB URI</h1><p>В MongoDB подключение обычно настраивается через строку подключения (Connection String).</p><p><strong>Задание:</strong> Проверьте переменную <code>MONGO_URI</code>.</p></div>`,
+                    check(cmd, state) { return cmd.includes('MONGO_URI'); }
+                },
+                {
+                    id: "mg-ping",
+                    title: "DB Ping (Healthcheck)",
+                    hint: "mongosh --eval \"db.adminCommand('ping')\"",
+                    theoryHTML: `<div class="prose"><h1>MongoDB Ping</h1><p>Для выполнения команд вне интерактивной оболочки используйте <code>mongosh --eval "команда"</code>.</p><p><strong>Задание:</strong> Проверьте связь с базой через <code>db.adminCommand('ping')</code>.</p></div>`,
+                    check(cmd, state) { return cmd.includes('mongosh') && cmd.includes('ping'); }
+                },
+                {
+                    id: "mg-rs-status",
+                    title: "Replica Set Status",
+                    hint: "mongosh --eval \"rs.status()\"",
+                    theoryHTML: `<div class="prose"><h1>Replica Set</h1><p>Задание: Проверьте статус репликации командой <code>rs.status()</code> из консоли Bash.</p></div>`,
+                    check(cmd, state) { return cmd.includes('mongosh') && cmd.includes('rs.status()'); }
+                },
+                {
+                    id: "mg-primary",
+                    title: "Поиск Primary",
+                    hint: "mongosh --eval \"db.isMaster()\"",
+                    theoryHTML: `<div class="prose"><h1>Поиск Primary</h1><p>Задание: Убедитесь, что текущий узел является Primary (Master) через <code>db.isMaster()</code>.</p></div>`,
+                    check(cmd, state) { return cmd.includes('mongosh') && cmd.includes('isMaster'); }
+                },
+                {
+                    id: "mg-conf",
+                    title: "Конфиг mongod.conf",
+                    hint: "cat /etc/mongod.conf",
+                    theoryHTML: `<div class="prose"><h1>Конфигурация</h1><p>Задание: Прочитайте основной файл конфигурации <code>/etc/mongod.conf</code>.</p></div>`,
+                    check(cmd, state) { return cmd.includes('/etc/mongod.conf'); }
+                }
+            ]
         }
-
     ]
 };
-
-// THEMES moved to theme.js

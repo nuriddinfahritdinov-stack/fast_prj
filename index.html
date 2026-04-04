@@ -108,7 +108,7 @@
                 <p id="refCardDesc" class="text-sm" style="color: var(--text-secondary);">PostgreSQL — консоль и CLI</p>
             </a>
 
-            <a href="lab.html"
+            <a id="labCard" href="lab.html"
                class="card p-6 rounded-2xl border group block text-left"
                style="background: var(--bg-secondary); border-color: var(--border);">
                 <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4 transition-colors"
@@ -142,10 +142,10 @@
 
     <script>
         const refMap = {
-            scripting:  { href: '01_Bash_Core.html',      desc: 'Bash — автоматизация и скрипты' },
-            postgresql: { href: '02_PostgreSQL_Ref.html',  desc: 'PostgreSQL — консоль и CLI' },
-            oracle:     { href: '03_Oracle_Ref.html',      desc: 'Oracle Database — DBA справочник' },
-            mongodb:    { href: '04_MongoDB_Ref.html',     desc: 'MongoDB — mongosh и NoSQL' },
+            scripting:  { href: '01_Bash_Core.html',      desc: 'Bash — автоматизация и скрипты', lab: '01_Bash_Lab.html' },
+            postgresql: { href: '02_PostgreSQL_Ref.html',  desc: 'PostgreSQL — консоль и CLI', lab: '02_PostgreSQL_Lab.html' },
+            oracle:     { href: '03_Oracle_Ref.html',      desc: 'Oracle Database — DBA справочник', lab: '03_Oracle_Lab.html' },
+            mongodb:    { href: '04_MongoDB_Ref.html',     desc: 'MongoDB — mongosh и NoSQL', lab: '04_MongoDB_Lab.html' },
         };
 
         function updatePage() {
@@ -153,6 +153,7 @@
             const info = refMap[val];
             document.getElementById('refCard').href = info.href;
             document.getElementById('refCardDesc').textContent = info.desc;
+            document.getElementById('labCard').href = info.lab;
         }
 
         // Init

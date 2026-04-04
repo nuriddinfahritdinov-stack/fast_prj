@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DRE PostgreSQL Lab - Обучение</title>
+    <title>DRE Oracle Lab - Обучение</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -477,7 +477,7 @@ function Navbar({ currentTheme, setTheme, moduleIdx, setModuleIdx }) {
                 <!-- Module selector -->
                 <select
                     value=${moduleIdx}
-                    onChange=${e => setModuleIdx(Number(e.target.value))}
+                    onChange=${e => { const urls = ["01_Bash_Lab.html", "02_PostgreSQL_Lab.html", "03_Oracle_Lab.html", "04_MongoDB_Lab.html"]; window.location.href = urls[Number(e.target.value)]; }}
                     class="bg-custom-sec border border-custom text-[10px] rounded px-2 py-1 outline-none cursor-pointer"
                 >
                     ${CURRICULUM.modules.map((m, i) => html`<option key=${m.id} value=${i}>${m.name}</option>`)}
@@ -536,7 +536,7 @@ function SuccessBanner({ task, onNext, isLast }) {
 // ── Main App ────────────────────────────────────────────────────────────────
 function App() {
     const [currentTheme, setCurrentTheme] = useState(window.DRETheme ? window.DRETheme.get() : 'dracula');
-    const [moduleIdx,    setModuleIdx]    = useState(0);
+    const [moduleIdx,    setModuleIdx]    = useState(2);
     const [taskIdx,      setTaskIdx]      = useState(0);
     const [cwd,          setCwd]          = useState('~');
     const [hint,         setHint]         = useState(false);
@@ -605,7 +605,7 @@ function App() {
 
         if (result.output === '__CLEAR__') {
             term.current.clear();
-            term.current.write(`user@pgsql-lab:${cwdRef.current}$ `);
+            term.current.write(`user@oracle-db:${cwdRef.current}$ `);
             return;
         }
 
@@ -649,9 +649,9 @@ function App() {
         term.current.open(termRef.current);
         fitAddon.current.fit();
 
-        term.current.writeln('\x1b[1;35mDRE PostgreSQL Lab — v2.1.0\x1b[0m');
+        term.current.writeln('\x1b[1;35mDRE Oracle Lab — v2.1.0\x1b[0m');
         term.current.writeln('\x1b[90mТип "help" для списка команд. Ctrl+L — очистить.\x1b[0m');
-        term.current.write('\r\nuser@pgsql-lab:~$ ');
+        term.current.write('\r\nuser@oracle-db:~$ ');
 
         let inputBuf = '';
 
@@ -660,7 +660,7 @@ function App() {
 
             if (domEvent.ctrlKey && (code === 76 || key === '\f')) {
                 term.current.clear();
-                term.current.write(`user@pgsql-lab:${cwdRef.current}$ `);
+                term.current.write(`user@oracle-db:${cwdRef.current}$ `);
                 inputBuf = '';
                 return;
             }
@@ -668,7 +668,7 @@ function App() {
                 term.current.write('\r\n');
                 handleCommandRef.current(inputBuf);
                 inputBuf = '';
-                term.current.write(`user@pgsql-lab:${cwdRef.current}$ `);
+                term.current.write(`user@oracle-db:${cwdRef.current}$ `);
             } else if (code === 8) {
                 if (inputBuf.length > 0) { inputBuf = inputBuf.slice(0,-1); term.current.write('\b \b'); }
             } else if (key.charCodeAt(0) >= 32) {
