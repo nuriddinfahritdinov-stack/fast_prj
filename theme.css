@@ -45,12 +45,12 @@
     --bg-secondary: #1e1f29;
     --bg-card: #313244;
     --text-primary: #f8f8f2;
-    --text-secondary: #6272a4;
+    --text-secondary: #9aa5ce;
     --accent: #bd93f9;
     --accent-hover: #a87bf5;
     --border: #44475a;
     --code-bg: #44475a;
-    --code-color: #ff79c6;
+    --code-color: #ffb86c;
     --pre-bg: #1e1f29;
     --pre-color: #f8f8f2;
     --term-bg: #1e1f29;
@@ -72,7 +72,7 @@
     --bg-secondary: #0a0a0a;
     --bg-card: #111111;
     --text-primary: #00ff41;
-    --text-secondary: #ff0055;
+    --text-secondary: #8ab4f8;
     --accent: #00d4ff;
     --accent-hover: #00b8e6;
     --border: #00ff41;
@@ -157,6 +157,9 @@ body {
     color: var(--text-primary);
     font-family: var(--font-main);
     transition: background-color .3s, color .3s;
+    line-height: 1.6;
+    letter-spacing: 0.015em;
+    font-size: 1.05rem;
 }
 
 .border-custom   { border-color: var(--border); }
@@ -178,6 +181,8 @@ body {
     background: var(--bg-card);
     color: var(--text-primary);
     border-color: var(--border);
+    font-size: 1.05rem;
+    line-height: 1.75;
 }
 
 .ref-page article header {
@@ -202,6 +207,9 @@ body {
 .ref-page code {
     background: var(--code-bg);
     color: var(--code-color);
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    font-size: 0.9em;
 }
 .ref-page pre {
     background: var(--pre-bg);
@@ -217,9 +225,13 @@ body {
     background: var(--bg-secondary);
     color: var(--text-secondary);
     border-color: var(--border);
+    padding: 0.5rem;
+    font-weight: 600;
 }
 .ref-page table td {
     border-color: var(--border);
+    padding: 0.6rem 0.5rem;
+    line-height: 1.6;
 }
 .ref-page .cmd-col {
     color: var(--accent);
@@ -275,6 +287,7 @@ body {
 }
 .ref-page .alert-box p {
     color: var(--alert-text);
+    line-height: 1.65;
 }
 
 /* Footer */
@@ -364,7 +377,7 @@ body {
     outline: none;
     color: var(--text-primary);
     font-family: var(--font-main);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     padding-right: 4px;

@@ -26,13 +26,14 @@
         .xterm-viewport::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 
         /* Prose styles overriding */
-        .prose h1  { font-size:1.35rem; font-weight:700; margin-bottom:.7rem; color:var(--accent); }
-        .prose h2  { font-size:1.05rem; font-weight:600; margin-top:1.2rem; margin-bottom:.4rem; border-bottom:1px solid var(--border); padding-bottom:.2rem; }
-        .prose p   { margin-bottom:.8rem; line-height:1.65; }
-        .prose code { background:var(--code-bg); color:var(--code-color); padding:.15rem .4rem; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:.85em; }
-        .prose ul  { list-style-type:disc; padding-left:1.4rem; margin-bottom:.8rem; }
-        .prose ul li { margin-bottom:.25rem; }
-        .prose table { width:100%; border-collapse:collapse; margin-bottom:.8rem; font-size:.78rem; }
+        .prose { font-size: 1rem; line-height: 1.75; }
+        .prose h1  { font-size:1.6rem; font-weight:800; margin-bottom:.9rem; color:var(--accent); }
+        .prose h2  { font-size:1.3rem; font-weight:700; margin-top:1.5rem; margin-bottom:.6rem; border-bottom:1px solid var(--border); padding-bottom:.3rem; }
+        .prose p   { margin-bottom:1rem; line-height:1.75; font-size:1rem; }
+        .prose code { background:var(--code-bg); color:var(--code-color); padding:.15rem .4rem; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:.95em; }
+        .prose ul  { list-style-type:disc; padding-left:1.4rem; margin-bottom:1rem; line-height:1.75; font-size:1rem; }
+        .prose ul li { margin-bottom:.35rem; }
+        .prose table { width:100%; border-collapse:collapse; margin-bottom:1rem; font-size:.95rem; }
         .prose table th { text-align:left; padding:.3rem .5rem; opacity:.55; border-bottom:1px solid var(--border); }
         .prose table td { padding:.25rem .5rem; vertical-align:top; border-bottom:1px solid var(--border); }
         .prose table td .font-mono,
@@ -453,7 +454,7 @@ function App() {
 
         term.current = new Terminal({
             cursorBlink: true,
-            fontSize: 13,
+            fontSize: 14,
             fontFamily: "'JetBrains Mono', monospace",
             theme: { background:'#1e1f29', foreground:'#f8f8f2' },
             scrollback: 1000,
