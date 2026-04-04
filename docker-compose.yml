@@ -19,6 +19,12 @@ services:
       - apt-cache-data:/var/cache/apt-cacher-ng
     networks:
       - dre-lab-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3142/acng-report.html"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # ── Sandbox (Full Admin Environment) ────────────────────────────────────
   # Автономный контейнер: Ubuntu + PostgreSQL 15 server + MongoDB 7 server

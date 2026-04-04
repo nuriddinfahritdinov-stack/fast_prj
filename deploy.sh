@@ -165,7 +165,7 @@ cmd_status() {
 
     # Quick health summary
     log "Сводка:"
-    for svc in web sandbox-terminal sandbox-postgres sandbox-mongo apt-cache; do
+    for svc in web sandbox-terminal terminal-gateway apt-cache; do
         local status
         status=$($COMPOSE ps --format '{{.Status}}' "$svc" 2>/dev/null || echo "not running")
         if echo "$status" | grep -q "healthy"; then

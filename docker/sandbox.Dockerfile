@@ -143,9 +143,8 @@ COPY docker/systemctl-wrapper.sh /usr/local/bin/systemctl
 COPY docker/journalctl-wrapper.sh /usr/local/bin/journalctl
 RUN chmod +x /usr/local/bin/systemctl /usr/local/bin/journalctl
 
-# ── APT proxy config for runtime (use apt-cacher-ng when available) ──────
-RUN echo '// apt-cache proxy (DRE Lab)\n\
-Acquire::http::Proxy::apt-cache "DIRECT";\n' > /etc/apt/apt.conf.d/02-dre-cache
+# ── APT proxy fallback config (HTTPS repos bypass the cache) ─────────────
+RUN echo 'Acquire::https::Proxy "DIRECT";' > /etc/apt/apt.conf.d/02-dre-cache
 
 # ── MOTD (Message of the Day) ────────────────────────────────────────────
 COPY docker/motd /etc/motd
